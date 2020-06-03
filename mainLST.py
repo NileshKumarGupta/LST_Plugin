@@ -7,7 +7,7 @@ from qgis.gui import QgsMapCanvas
 import os
 
 # neccesary
-from . import resources, form, procedures, fileio
+from . import resources, form, procedures, fileio, canvasLayer
 
 ## Main class: LSTplugin
 
@@ -62,7 +62,6 @@ class LSTplugin(object):
 
         window = form.MainWindow(self.iface)
         window.show()
-
 
 def displayOnScreen(resultStates, resultNames, filer):
 
