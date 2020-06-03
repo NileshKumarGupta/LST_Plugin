@@ -172,8 +172,6 @@ class MainWindow(QMainWindow):
         # get the most recent layer as that is the LST one
         # lstLayer = self.iface.mapCanvas().layers()[0]
 
-<<<<<<< HEAD
-=======
         lstLayer = layers["LST"]
         self.canvas = QgsMapCanvas()
         self.canvas.setExtent(lstLayer.extent())
@@ -181,7 +179,6 @@ class MainWindow(QMainWindow):
         self.canvas.show()
         # takes some time to render layer
 
->>>>>>> master
     def showStatus(self, text):
 
         self.status.showMessage(text, 20000)
