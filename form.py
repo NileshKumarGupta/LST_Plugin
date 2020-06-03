@@ -174,6 +174,7 @@ class MainWindow(QMainWindow):
 
         lstLayer = layers["LST"]
         self.canvas = QgsMapCanvas()
+        self.canvas.setExtent(lstLayer.extent())
         self.canvas.setLayers([lstLayer])
         self.canvas.show()
         # takes some time to render layer
