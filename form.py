@@ -171,13 +171,6 @@ class MainWindow(QMainWindow):
         # get the most recent layer as that is the LST one
         # lstLayer = self.iface.mapCanvas().layers()[0]
 
-        filer = fileio.fileHandler()
-
-        lstLayer = QgsRasterLayer(filer.generateFileName("LST", "TIFF"), "LST")
-
-        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-        zoneSelect.show()
-
     def showStatus(self, text):
 
         self.status.showMessage(text, 20000)
