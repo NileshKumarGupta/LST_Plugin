@@ -1,12 +1,14 @@
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
+from qgis.gui import QgsMapCanvas
+from qgis.core import QgsRasterLayer
 
-from . import mainLST
+from . import mainLST, fileio
+from . import mainLST, fileio
 
 
 class MainWindow(QMainWindow):
-
     def addCheckBox(self, text, defaultChecked=False):
 
         lstcheckbox = QCheckBox(text)
@@ -141,14 +143,14 @@ class MainWindow(QMainWindow):
         return filesel
 
     def getLayers(self, pathField, addr, band):
-        if(addr == "Select a layer"):
+        if addr == "Select a layer":
             return
         pathField.setText(addr)
         self.filePaths[band] = addr
 
     def getFiles(self, pathField, band):
         fp = QFileDialog.getOpenFileName()
-        if(not(fp[0])):
+        if not (fp[0]):
             return
         pathField.setText(fp[0])
         self.filePaths[band] = fp[0]
@@ -165,7 +167,17 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+
+        # get the most recent layer as that is the LST one
+        # lstLayer = self.iface.mapCanvas().layers()[0]
+
+        lstLayer = layers["LST"]
+        self.canvas = QgsMapCanvas()
+        self.canvas.setExtent(lstLayer.extent())
+        self.canvas.setLayers([lstLayer])
+        self.canvas.show()
+        # takes some time to render layer
 
     def showStatus(self, text):
 
