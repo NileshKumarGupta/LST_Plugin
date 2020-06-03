@@ -65,11 +65,13 @@ class LSTplugin(object):
 
 def displayOnScreen(resultStates, resultNames, filer):
 
+    layers = dict()
     for i in range(6):
         if resultStates[i]:
-            iface.addRasterLayer(
+            layers[resultNames[i]] = iface.addRasterLayer(
                 filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
             )
+    return layers
 
 
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
@@ -104,8 +106,11 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     form.showStatus("Displaying Outputs")
 
+    layers = None
     resultNames = ["TOA", "BT", "NDVI", "PV", "LSE", "LST"]
     if displayResults:
-        displayOnScreen(resultStates, resultNames, filer)
+        layers = displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")
+
+    return layers

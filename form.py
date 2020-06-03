@@ -4,7 +4,8 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import QgsMapCanvas
 from qgis.core import QgsRasterLayer
 
-from . import mainLST, fileio, canvasLayer
+from . import mainLST, fileio
+from . import mainLST, fileio
 
 
 class MainWindow(QMainWindow):
@@ -166,11 +167,21 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
 
         # get the most recent layer as that is the LST one
         # lstLayer = self.iface.mapCanvas().layers()[0]
 
+<<<<<<< HEAD
+=======
+        lstLayer = layers["LST"]
+        self.canvas = QgsMapCanvas()
+        self.canvas.setExtent(lstLayer.extent())
+        self.canvas.setLayers([lstLayer])
+        self.canvas.show()
+        # takes some time to render layer
+
+>>>>>>> master
     def showStatus(self, text):
 
         self.status.showMessage(text, 20000)
