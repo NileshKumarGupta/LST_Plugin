@@ -9,6 +9,8 @@ class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
 
+        print(lstLayer)
+
         self.lstLayer = lstLayer
         self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
@@ -16,6 +18,7 @@ class CanvasLayer(QMainWindow):
         # Basic canvas settings
         self.canvas.setCanvasColor(Qt.white)
         self.canvas.setLayers([self.lstLayer])
+        self.canvas.setExtent(self.lstLayer.extent())
         self.setCentralWidget(self.canvas)
 
         self.actionZoomIn = QAction("Zoom in", self)
@@ -40,7 +43,7 @@ class CanvasLayer(QMainWindow):
         self.actionZoomOut.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolZoomOut)
         )
-        self.actionPan.triggered.connect(lambda: self.canvas.seteMapTool(self.toolPan))
+        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.toolPan))
 
         self.toolbar.addAction(self.actionZoomIn)
         self.toolbar.addAction(self.actionZoomOut)

@@ -4,8 +4,7 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import QgsMapCanvas
 from qgis.core import QgsRasterLayer
 
-from . import mainLST, fileio
-from . import mainLST, fileio
+from . import mainLST, fileio, canvasLayer
 
 
 class MainWindow(QMainWindow):
@@ -173,10 +172,15 @@ class MainWindow(QMainWindow):
         # lstLayer = self.iface.mapCanvas().layers()[0]
 
         lstLayer = layers["LST"]
-        self.canvas = QgsMapCanvas()
-        self.canvas.setExtent(lstLayer.extent())
-        self.canvas.setLayers([lstLayer])
-        self.canvas.show()
+
+        lstLayer = layers["LST"]
+        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+        zoneSelect.show()
+
+        # self.canvas = QgsMapCanvas()
+        # self.canvas.setExtent(lstLayer.extent())
+        # self.canvas.setLayers([lstLayer])
+        # self.canvas.show()
         # takes some time to render layer
 
     def showStatus(self, text):
