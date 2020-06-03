@@ -8,18 +8,12 @@ from qgis.core import QgsRasterLayer
 class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
-
-        print(lstLayer)
-
         self.lstLayer = lstLayer
-        self.canvas = QgsMapCanvas()
+        self.canvas = Canvas(self.lstLayer)
         self.toolbar = self.addToolBar("Canvas actions")
+        self.setCentralWidget(self.canvas)
 
         # Basic canvas settings
-        self.canvas.setCanvasColor(Qt.white)
-        self.canvas.setLayers([self.lstLayer])
-        self.canvas.setExtent(self.lstLayer.extent())
-        self.setCentralWidget(self.canvas)
 
         self.actionZoomIn = QAction("Zoom in", self)
         self.actionZoomOut = QAction("Zoom out", self)
@@ -55,16 +49,55 @@ class CanvasLayer(QMainWindow):
 
         self.actionCircleSelect = QAction("Circle Select", self)
         self.toolbar.addAction(self.actionCircleSelect)
+        self.actionCircleSelect.triggered.connect(self.circleSelect)
 
         # add Polygon Select
 
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.toolbar.addAction(self.actionPolygonSelect)
+        self.actionPolygonSelect.triggered.connect(self.polygonSelect)
 
-        self.canvas.setMapTool(self.toolPan)
+        # add Undo
+        self.actionUndo = QAction("Undo", self)
+        self.toolbar.addAction(self.actionUndo)
+        self.actionUndo.triggered.connect(lambda: self.removeLast)
 
-        def markCircle(self):
-            pass
+        # self.canvas.setMapTool(self.toolPan)
 
-        def markPolygon(self):
-            pass
+    def circleSelect(self):
+        print("circle event triggered")
+        self.canvas.circle = True
+
+
+    def polygonSelect(self):
+        print("polygon event triggered")
+        self.canvas.polygon = True
+
+    def removeLast(self):
+        pass
+
+
+class Canvas(QgsMapCanvas):
+    def __init__(self, lstLayer):
+        super(QgsMapCanvas, self).__init__()
+
+        self.lstLayer = lstLayer
+        self.setCanvasColor(Qt.white)
+        self.setLayers([self.lstLayer])
+        self.setExtent(self.lstLayer.extent())
+        self.circle = False
+        self.polygon = False
+        self.circlePoints = []
+        self.polygonPoints = []
+
+    def mousePressEvent(self, e):
+        if(self.circle):
+            markCircle()
+        else if(self.polygon):
+            markPolygon()
+
+    def markCircle():
+        pass
+
+    def markPolygon():
+        pass
