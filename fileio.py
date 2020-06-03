@@ -96,7 +96,7 @@ class fileHandler(object):
 
         bands = {"Error" : None}
         for band in filepaths:
-            if(not(band.endswith(".TIF"))):
+            if(not(filepaths[band].endswith(".TIF"))):
                 bands["Error"] = "Unknown band format"
                 return bands
             bands[band] = self.readBand(filepaths[band])
