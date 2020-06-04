@@ -20,12 +20,6 @@ class MainWindow(QMainWindow):
         self.iface = iface
         super(MainWindow, self).__init__()
 
-        lstLayer = self.iface.mapCanvas().layers()[0]
-
-        # lstLayer = layers["LST"]
-        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-        zoneSelect.show()
-
         self.filePaths = dict()
         self.checkboxes = []
         self.layerInfor = dict()
@@ -172,12 +166,11 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        # layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+        lstLayer = layers["LST"]
 
-        # get the most recent layer as that is the LST one
-        lstLayer = self.iface.mapCanvas().layers()[0]
+        # lstLayer = self.iface.mapCanvas().layers()[0]
 
-        # lstLayer = layers["LST"]
         zoneSelect = canvasLayer.CanvasLayer(lstLayer)
         zoneSelect.show()
 

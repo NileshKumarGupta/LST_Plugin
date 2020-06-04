@@ -9,11 +9,15 @@ class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
         self.lstLayer = lstLayer
-        self.canvas = Canvas(self.lstLayer)
+        self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
         self.setCentralWidget(self.canvas)
 
         # Basic canvas settings
+        self.canvas.setCanvasColor(Qt.white)
+        self.canvas.setLayers([self.lstLayer])
+        self.canvas.setExtent(self.lstLayer.extent())
+        self.canvas.enableAntiAliasing(True)
 
         self.actionZoomIn = QAction("Zoom in", self)
         self.actionZoomOut = QAction("Zoom out", self)
@@ -49,13 +53,18 @@ class CanvasLayer(QMainWindow):
 
         self.actionCircleSelect = QAction("Circle Select", self)
         self.toolbar.addAction(self.actionCircleSelect)
-        self.actionCircleSelect.triggered.connect(self.circleSelect)
+        # self.actionCircleSelect.triggered.connect(self.circleSelect)
 
         # add Polygon Select
 
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.toolbar.addAction(self.actionPolygonSelect)
-        self.actionPolygonSelect.triggered.connect(self.polygonSelect)
+        self.toolPolygon = PolygonMapTool(self.canvas)
+        self.toolPolygon.setAction(self.actionPolygonSelect)
+        self.actionPolygonSelect.triggered.connect(
+            lambda: self.canvas.setMapTool(self.toolPolygon)
+        )
+        # self.actionPolygonSelect.triggered.connect(self.polygonSelect)
 
         # add Undo
         self.actionUndo = QAction("Undo", self)
@@ -64,40 +73,33 @@ class CanvasLayer(QMainWindow):
 
         # self.canvas.setMapTool(self.toolPan)
 
-    def circleSelect(self):
-        print("circle event triggered")
-        self.canvas.circle = True
-
-
-    def polygonSelect(self):
-        print("polygon event triggered")
-        self.canvas.polygon = True
-
     def removeLast(self):
         pass
 
 
-class Canvas(QgsMapCanvas):
-    def __init__(self, lstLayer):
-        super(QgsMapCanvas, self).__init__()
+class PolygonMapTool(QgsMapToolEmitPoint):
+    def __init__(self, canvas):
+        self.canvas = canvas
 
-        self.lstLayer = lstLayer
-        self.setCanvasColor(Qt.white)
-        self.setLayers([self.lstLayer])
-        self.setExtent(self.lstLayer.extent())
-        self.circle = False
-        self.polygon = False
-        self.circlePoints = []
-        self.polygonPoints = []
+        QgsMapToolEmitPoint.__init__(self, self.canvas)
 
-    def mousePressEvent(self, e):
-        if(self.circle):
-            markCircle()
-        else if(self.polygon):
-            markPolygon()
+        self.rubberBand = QgsRubberBand(self.canvas, True)
+        self.rubberBand.setColor(Qt.red)
+        self.rubberBand.setWidth(1)
+        self.rubberBand.reset()
+        self.pointList = list()
+        self.polygonList = list()
 
-    def markCircle():
-        pass
-
-    def markPolygon():
-        pass
+    def canvasDoubleClickEvent(self, e):
+        point = self.toMapCoordinates(e.pos())
+        print(point)
+        self.pointList.append(point)
+        if len(self.pointList) == 1:
+            vertex = QgsVertexMarker(self.canvas)
+            vertex.setCenter(point)
+            vertex.setColor(Qt.red)
+            vertex.show()
+            self.rubberBand.addPoint(point, False)
+        else:
+            self.rubberBand.addPoint(point, True)
+            self.rubberBand.show()
