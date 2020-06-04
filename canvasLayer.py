@@ -48,17 +48,6 @@ class CanvasLayer(QMainWindow):
         self.toolbar.addAction(self.actionPan)
 
         # basic settings end
-
-        # add circle select
-
-        # self.toolCircle = circleSelect(self.canvas)
-        self.actionCircleSelect = QAction("Circle Select", self)
-        self.actionCircleSelect.triggered.connect(
-            lambda: self.canvas.setMapTool(self.toolCircle)
-        )
-        self.toolbar.addAction(self.actionCircleSelect)
-        # self.actionCircleSelect.triggered.connect(self.circleSelect)
-
         # add Polygon Select
 
         self.toolPolygon = PolygonMapTool(self.canvas)
