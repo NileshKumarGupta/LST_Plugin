@@ -41,7 +41,7 @@ class CanvasLayer(QMainWindow):
         self.actionZoomOut.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolZoomOut)
         )
-        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.pan))
+        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.toolPan))
 
         self.toolbar.addAction(self.actionZoomIn)
         self.toolbar.addAction(self.actionZoomOut)
@@ -61,18 +61,13 @@ class CanvasLayer(QMainWindow):
 
         # add Polygon Select
 
-        # self.toolPolygon = polygonSelect(self.canvas)
+        self.toolPolygon = PolygonMapTool(self.canvas)
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.actionPolygonSelect.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolPolygon)
         )
         self.toolbar.addAction(self.actionPolygonSelect)
-        self.toolPolygon = PolygonMapTool(self.canvas)
         self.toolPolygon.setAction(self.actionPolygonSelect)
-        self.actionPolygonSelect.triggered.connect(
-            lambda: self.canvas.setMapTool(self.toolPolygon)
-        )
-        # self.actionPolygonSelect.triggered.connect(self.polygonSelect)
 
         # add Undo
         self.actionUndo = QAction("Undo", self)

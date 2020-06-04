@@ -167,12 +167,14 @@ class MainWindow(QMainWindow):
         )
 
         layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
-        lstLayer = layers["LST"]
+
+        if("LST" in layers):
+            lstLayer = layers["LST"]
+            zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+            zoneSelect.show()
 
         # lstLayer = self.iface.mapCanvas().layers()[0]
 
-        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-        zoneSelect.show()
 
     def showStatus(self, text):
         self.status.showMessage(text, 20000)
