@@ -15,6 +15,17 @@ class polygonSelect(QgsMapTool):
 
         pass
 
+class circleSelect(QgsMapTool):
+
+    def __init__(self, canvas):
+
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+    
+    def canvasPressEvent(self, event):
+
+        pass
+
 class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
@@ -59,9 +70,12 @@ class CanvasLayer(QMainWindow):
 
         # add circle select
 
-        # self.actionCircleSelect = QAction("Circle Select", self)
-        # self.toolbar.addAction(self.actionCircleSelect)
-        # self.actionCircleSelect.triggered.connect(self.circleSelect)
+        self.toolCircle = circleSelect(self.canvas)
+        self.actionCircleSelect = QAction("Circle Select", self)
+        self.actionCircleSelect.triggered.connect(
+            lambda: self.canvas.setMapTool(self.toolCircle)
+        )
+        self.toolbar.addAction(self.actionCircleSelect)
 
         # add Polygon Select
 
@@ -78,11 +92,6 @@ class CanvasLayer(QMainWindow):
         self.actionUndo.triggered.connect(lambda: self.removeLast)
 
         self.canvas.setMapTool(self.toolPan)
-
-
-    def circleSelect(self):
-        print("circle event triggered")
-        self.canvas.circle = True
 
     def removeLast(self):
         pass
