@@ -4,6 +4,16 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import *
 from qgis.core import QgsRasterLayer
 
+class polygonSelect(QgsMapTool):
+
+    def __init__(self, canvas):
+
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+    
+    def canvasPressEvent(self, event):
+
+        pass
 
 class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
@@ -37,7 +47,9 @@ class CanvasLayer(QMainWindow):
         self.actionZoomOut.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolZoomOut)
         )
-        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.toolPan))
+        self.actionPan.triggered.connect(
+            lambda: self.canvas.setMapTool(self.pan)
+        )
 
         self.toolbar.addAction(self.actionZoomIn)
         self.toolbar.addAction(self.actionZoomOut)
@@ -47,31 +59,30 @@ class CanvasLayer(QMainWindow):
 
         # add circle select
 
-        self.actionCircleSelect = QAction("Circle Select", self)
-        self.toolbar.addAction(self.actionCircleSelect)
-        self.actionCircleSelect.triggered.connect(self.circleSelect)
+        # self.actionCircleSelect = QAction("Circle Select", self)
+        # self.toolbar.addAction(self.actionCircleSelect)
+        # self.actionCircleSelect.triggered.connect(self.circleSelect)
 
         # add Polygon Select
 
+        self.toolPolygon = polygonSelect(self.canvas)
         self.actionPolygonSelect = QAction("Polygon Select", self)
+        self.actionPolygonSelect.triggered.connect(
+            lambda: self.canvas.setMapTool(self.toolPolygon)
+        )
         self.toolbar.addAction(self.actionPolygonSelect)
-        self.actionPolygonSelect.triggered.connect(self.polygonSelect)
 
         # add Undo
         self.actionUndo = QAction("Undo", self)
         self.toolbar.addAction(self.actionUndo)
         self.actionUndo.triggered.connect(lambda: self.removeLast)
 
-        # self.canvas.setMapTool(self.toolPan)
+        self.canvas.setMapTool(self.toolPan)
+
 
     def circleSelect(self):
         print("circle event triggered")
         self.canvas.circle = True
-
-
-    def polygonSelect(self):
-        print("polygon event triggered")
-        self.canvas.polygon = True
 
     def removeLast(self):
         pass
@@ -89,15 +100,3 @@ class Canvas(QgsMapCanvas):
         self.polygon = False
         self.circlePoints = []
         self.polygonPoints = []
-
-    def mousePressEvent(self, e):
-        if(self.circle):
-            markCircle()
-        else if(self.polygon):
-            markPolygon()
-
-    def markCircle():
-        pass
-
-    def markPolygon():
-        pass
