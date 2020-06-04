@@ -5,6 +5,28 @@ from qgis.gui import *
 from qgis.core import QgsRasterLayer
 
 
+class polygonSelect(QgsMapTool):
+    def __init__(self, canvas):
+
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+
+    def canvasPressEvent(self, event):
+
+        pass
+
+
+class circleSelect(QgsMapTool):
+    def __init__(self, canvas):
+
+        QgsMapTool.__init__(self, canvas)
+        self.canvas = canvas
+
+    def canvasPressEvent(self, event):
+
+        pass
+
+
 class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
@@ -41,7 +63,7 @@ class CanvasLayer(QMainWindow):
         self.actionZoomOut.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolZoomOut)
         )
-        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.toolPan))
+        self.actionPan.triggered.connect(lambda: self.canvas.setMapTool(self.pan))
 
         self.toolbar.addAction(self.actionZoomIn)
         self.toolbar.addAction(self.actionZoomOut)
@@ -51,13 +73,21 @@ class CanvasLayer(QMainWindow):
 
         # add circle select
 
+        self.toolCircle = circleSelect(self.canvas)
         self.actionCircleSelect = QAction("Circle Select", self)
+        self.actionCircleSelect.triggered.connect(
+            lambda: self.canvas.setMapTool(self.toolCircle)
+        )
         self.toolbar.addAction(self.actionCircleSelect)
         # self.actionCircleSelect.triggered.connect(self.circleSelect)
 
         # add Polygon Select
 
+        self.toolPolygon = polygonSelect(self.canvas)
         self.actionPolygonSelect = QAction("Polygon Select", self)
+        self.actionPolygonSelect.triggered.connect(
+            lambda: self.canvas.setMapTool(self.toolPolygon)
+        )
         self.toolbar.addAction(self.actionPolygonSelect)
         self.toolPolygon = PolygonMapTool(self.canvas)
         self.toolPolygon.setAction(self.actionPolygonSelect)
