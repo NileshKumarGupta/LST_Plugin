@@ -27,6 +27,11 @@ class MainWindow(QMainWindow):
         for layer in layers:
             self.layerInfor[layer.name()] = layer.dataProvider().dataSourceUri()
 
+        # lstLayer = self.iface.mapCanvas().layers()[0]
+
+        # zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+        # zoneSelect.show()
+
         # print(self.layerInfor)
 
         self.setWindowTitle("LST Plugin")
