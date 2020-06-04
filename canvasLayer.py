@@ -5,28 +5,6 @@ from qgis.gui import *
 from qgis.core import QgsRasterLayer
 
 
-class polygonSelect(QgsMapTool):
-    def __init__(self, canvas):
-
-        QgsMapTool.__init__(self, canvas)
-        self.canvas = canvas
-
-    def canvasPressEvent(self, event):
-
-        pass
-
-
-class circleSelect(QgsMapTool):
-    def __init__(self, canvas):
-
-        QgsMapTool.__init__(self, canvas)
-        self.canvas = canvas
-
-    def canvasPressEvent(self, event):
-
-        pass
-
-
 class CanvasLayer(QMainWindow):
     def __init__(self, lstLayer):
         super(QMainWindow, self).__init__()
@@ -73,7 +51,7 @@ class CanvasLayer(QMainWindow):
 
         # add circle select
 
-        self.toolCircle = circleSelect(self.canvas)
+        # self.toolCircle = circleSelect(self.canvas)
         self.actionCircleSelect = QAction("Circle Select", self)
         self.actionCircleSelect.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolCircle)
@@ -83,7 +61,7 @@ class CanvasLayer(QMainWindow):
 
         # add Polygon Select
 
-        self.toolPolygon = polygonSelect(self.canvas)
+        # self.toolPolygon = polygonSelect(self.canvas)
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.actionPolygonSelect.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolPolygon)
@@ -115,8 +93,7 @@ class PolygonMapTool(QgsMapToolEmitPoint):
 
         self.rubberBand = QgsRubberBand(self.canvas, True)
         self.rubberBand.setColor(Qt.red)
-        self.rubberBand.setWidth(1)
-        self.rubberBand.reset()
+        self.rubberBand.setWidth(2)
         self.pointList = list()
         self.polygonList = list()
 
@@ -132,4 +109,19 @@ class PolygonMapTool(QgsMapToolEmitPoint):
             self.rubberBand.addPoint(point, False)
         else:
             self.rubberBand.addPoint(point, True)
-            self.rubberBand.show()
+            # self.rubberBand.show()
+
+    def keyPressEvent(self, e):
+        enterKey = 16777220
+        if not e.key() == enterKey or len(self.pointList) == 0:
+            return
+        self.rubberBand.addPoint(self.pointList[0], True)
+        self.rubberBand.show()
+        self.polygonList.append(self.pointList)
+        self.pointList.clear()
+
+        # to make different rubberbands
+
+        self.rubberBand = QgsRubberBand(self.canvas, True)
+        self.rubberBand.setColor(Qt.red)
+        self.rubberBand.setWidth(2)
