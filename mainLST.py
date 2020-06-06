@@ -12,7 +12,7 @@ from . import resources, form, procedures, fileio, canvasLayer
 ## Main class: LSTplugin
 
 
-class LSTplugin(object):
+class LandSurfaceTemperature(object):
 
     """Main plugin object"""
 
@@ -20,10 +20,6 @@ class LSTplugin(object):
 
         """
         Initialiser
-        Inputs:
-            iface - qgis.gui.QgisInterface
-        Outputs:
-            mainLST object (implicitly)
         """
 
         self.iface = iface
@@ -32,6 +28,7 @@ class LSTplugin(object):
 
         """
         Called when loaded
+        Adds plugin option to menus
         """
 
         self.action = QAction(
@@ -41,29 +38,34 @@ class LSTplugin(object):
         )
         self.action.triggered.connect(self.run)
 
-        ## Add to interface
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("LST plugin", self.action)
+        self.iface.addPluginToMenu("Land Surface Temperature", self.action)
 
     def unload(self):
 
         """
-        Called when unloaded
+        Called when plugin is unloaded
+        Removes option from interface
         """
 
-        self.iface.removePluginMenu("LST plugin", self.action)
+        self.iface.removePluginMenu("Land Surface Temperature", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     def run(self):
 
         """
         Called when plugin asked to run
+        Starts a UI instance, defined in form.py
         """
 
         window = form.MainWindow(self.iface)
         window.show()
 
 def displayOnScreen(resultStates, resultNames, filer):
+
+    """
+    Display generated outputs as layers on the interface
+    """
 
     layers = dict()
     for i in range(6):
@@ -75,6 +77,10 @@ def displayOnScreen(resultStates, resultNames, filer):
 
 
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
+
+    """
+    Main processing element, called every time Go is pressed
+    """
 
     form.showStatus("Loading Files")
 
