@@ -144,7 +144,7 @@ class fileHandler(object):
         Make a new directory under the operating folder, for outputs
         """
 
-        outfolder = self.folder + "/LandSurfaceTemperature"
+        outfolder = self.folder + "/LSTOutputs"
         while os.path.isdir(outfolder):
             if outfolder[-1].isnumeric():
                 outfolder = outfolder[:-1] + str(1 + int(outfolder[-1]))
