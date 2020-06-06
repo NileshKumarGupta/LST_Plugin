@@ -12,7 +12,7 @@ from . import resources, form, procedures, fileio, canvasLayer
 ## Main class: LSTplugin
 
 
-class LandSurfaceTemperature(object):
+class LSTplugin(object):
 
     """Main plugin object"""
 
@@ -39,7 +39,7 @@ class LandSurfaceTemperature(object):
         self.action.triggered.connect(self.run)
 
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("Land Surface Temperature", self.action)
+        self.iface.addPluginToMenu("LST Plugin", self.action)
 
     def unload(self):
 
@@ -48,7 +48,7 @@ class LandSurfaceTemperature(object):
         Removes option from interface
         """
 
-        self.iface.removePluginMenu("Land Surface Temperature", self.action)
+        self.iface.removePluginMenu("LST Plugin", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     def run(self):
