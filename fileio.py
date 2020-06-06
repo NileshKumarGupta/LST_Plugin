@@ -172,17 +172,12 @@ class vectorHandler(fileHandler):
             feature.setAttributes([i])
             pr.addFeatures([feature])
         vlayer.updateExtents()
-        del pr
-        print("Done")
         save_options = QgsVectorFileWriter.SaveVectorOptions()
-        save_options.driverName = "SHP"
+        save_options.driverName = "ESRI Shapefile"
         save_options.fileEncoding = "UTF-8"
         transform_context = QgsProject.instance().transformContext()
-        error = QgsVectorFileWriter.writeAsVectorFormatV2(vlayer,
-                                                        fname,
-                                                        transform_context,
-                                                        save_options)
-        print(error)
+        writerfunc = QgsVectorFileWriter.writeAsVectorFormatV2
+        error = writerfunc(vlayer, fname, transform_context, save_options)
     
     def saveAll(self, features):
 
