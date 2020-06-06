@@ -4,6 +4,8 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import QgsMapCanvas
 from qgis.core import QgsRasterLayer
 
+from qgis.core import *
+
 from . import mainLST, fileio, canvasLayer
 
 
@@ -171,12 +173,18 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+        filer = fileio.vectorHandler(self.filePaths["Red"][:self.filePaths["Red"].rfind("/")])
+        p1 = QgsPointXY(796930,1410674)
+        p2 = QgsPointXY(796931,1410675)
+        p3 = QgsPointXY(796931,1410674)
+        filer.saveAll({"Type1" : [QgsGeometry.fromPolygonXY([[p1, p2, p3]])]})
 
-        if("LST" in layers):
-            lstLayer = layers["LST"]
-            zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-            zoneSelect.show()
+        # layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+
+        # if("LST" in layers):
+        #     lstLayer = layers["LST"]
+        #     zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+        #     zoneSelect.show()
 
         # lstLayer = self.iface.mapCanvas().layers()[0]
 

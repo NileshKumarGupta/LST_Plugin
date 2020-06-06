@@ -1,5 +1,6 @@
 import numpy as np
 import gdal, os
+from qgis.core import QgsVectorLayer, QgsFeature, QgsVectorFileWriter, QgsProject
 from zipfile import ZipFile
 import tarfile
 
@@ -130,9 +131,9 @@ class fileHandler(object):
         was incredibly useful.
         """
 
-    def prepareOutFolder(self):
+    def prepareOutFolder(self, ftype = "LSTPluginResults"):
 
-        outfolder = self.folder + "/LSTPluginResults"
+        outfolder = self.folder + "/" + ftype
         while os.path.isdir(outfolder):
             if outfolder[-1].isnumeric():
                 outfolder = outfolder[:-1] + str(1 + int(outfolder[-1]))
@@ -152,3 +153,43 @@ class fileHandler(object):
         for resultName in arrays:
             filepath = self.generateFileName(resultName, "TIF")
             self.saveArray(arrays[resultName], filepath)
+
+class vectorHandler(fileHandler):
+
+    def __init__(self, folder):
+
+        fileHandler.__init__(self)
+        self.folder = folder
+    
+    def saveFeatures(self, polys, fname, fclass):
+
+        uri = "MultiPolygon?crs=epsg:32643&field=id:integer&index=yes"
+        vlayer = QgsVectorLayer(uri, "fclass", "memory")
+        pr = vlayer.dataProvider()
+        for i in range(len(polys)):
+            feature = QgsFeature()
+            feature.setGeometry(polys[i])
+            feature.setAttributes([i])
+            pr.addFeatures([feature])
+        vlayer.updateExtents()
+        del pr
+        print("Done")
+        save_options = QgsVectorFileWriter.SaveVectorOptions()
+        save_options.driverName = "SHP"
+        save_options.fileEncoding = "UTF-8"
+        transform_context = QgsProject.instance().transformContext()
+        error = QgsVectorFileWriter.writeAsVectorFormatV2(vlayer,
+                                                        fname,
+                                                        transform_context,
+                                                        save_options)
+        print(error)
+    
+    def saveAll(self, features):
+
+        if(not(self.outfolder)):
+            self.prepareOutFolder("LSTPluginShapes")
+        
+        for fclass in features:
+            polys = features[fclass]
+            fname = self.generateFileName(fclass, "shp")
+            self.saveFeatures(polys, fname, fclass)
