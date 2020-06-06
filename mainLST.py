@@ -2,11 +2,12 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
 from qgis.utils import iface
+from qgis.gui import QgsMapCanvas
 
 import os
 
 # neccesary
-from . import resources, form, procedures, fileio
+from . import resources, form, procedures, fileio, canvasLayer
 
 ## Main class: LSTplugin
 
@@ -31,8 +32,8 @@ class LandSurfaceTemperature(object):
         """
 
         self.action = QAction(
-            icon=QIcon(":plugins/LandSurfaceTemperature/icon.png"),
-            text="Land Surface Temperature",
+            icon=QIcon(":plugins/LST_Plugin/icon.png"),
+            text="LST plugin",
             parent=self.iface.mainWindow(),
         )
         self.action.triggered.connect(self.run)
@@ -66,11 +67,16 @@ def displayOnScreen(resultStates, resultNames, filer):
     Display generated outputs as layers on the interface
     """
 
+    layers = dict()
     for i in range(6):
         if resultStates[i]:
-            iface.addRasterLayer(filer.generateFileName(resultNames[i], "TIF"), resultNames[i])
+            layers[resultNames[i]] = iface.addRasterLayer(
+                filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
+            )
+    return layers
 
-def processAll(form, filePaths, resultStates, satType, displayResults = True):
+
+def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     """
     Main processing element, called every time Go is pressed
@@ -81,13 +87,13 @@ def processAll(form, filePaths, resultStates, satType, displayResults = True):
     filer = fileio.fileHandler()
     processor = procedures.processor()
 
-    if("zip" in filePaths):
+    if "zip" in filePaths:
         bands = filer.loadZip(filePaths)
         satType = bands["sat_type"]
         del bands["sat_type"]
     else:
         bands = filer.loadBands(filePaths)
-    if(bands["Error"]):
+    if bands["Error"]:
         form.showError(bands["Error"])
         return
     del bands["Error"]
@@ -95,7 +101,7 @@ def processAll(form, filePaths, resultStates, satType, displayResults = True):
     form.showStatus("Processing")
 
     results = processor.process(bands, satType, resultStates, form)
-    if(results["Error"]):
+    if results["Error"]:
         form.showError(results["Error"])
         return
     del results["Error"]
@@ -106,8 +112,11 @@ def processAll(form, filePaths, resultStates, satType, displayResults = True):
 
     form.showStatus("Displaying Outputs")
 
+    layers = None
     resultNames = ["TOA", "BT", "NDVI", "PV", "LSE", "LST"]
-    if(displayResults):
-        displayOnScreen(resultStates, resultNames, filer)
+    if displayResults:
+        layers = displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")
+
+    return layers

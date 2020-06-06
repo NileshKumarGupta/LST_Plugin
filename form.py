@@ -1,8 +1,10 @@
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
+from qgis.gui import QgsMapCanvas
+from qgis.core import QgsRasterLayer
 
-from . import mainLST
+from . import mainLST, fileio, canvasLayer
 
 
 class MainWindow(QMainWindow):
@@ -160,8 +162,8 @@ class MainWindow(QMainWindow):
         """
         Get filepath of layer selected
         """
-
-        if(addr == "Select a layer"):
+        
+        if addr == "Select a layer":
             return
         pathField.setText(addr)
         self.filePaths[band] = addr
@@ -173,7 +175,7 @@ class MainWindow(QMainWindow):
         """
 
         fp = QFileDialog.getOpenFileName()
-        if(not(fp[0])):
+        if not (fp[0]):
             return
         pathField.setText(fp[0])
         self.filePaths[band] = fp[0]
@@ -195,14 +197,19 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+        lstLayer = layers["LST"]
+
+        # lstLayer = self.iface.mapCanvas().layers()[0]
+        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+        zoneSelect.show()
 
     def showStatus(self, text):
-
+      
         """
         Show a message on the status bar
         """
-
+        
         self.status.showMessage(text, 20000)
 
     def showError(self, err):
