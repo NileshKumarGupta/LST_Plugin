@@ -6,7 +6,7 @@ from qgis.core import QgsRasterLayer
 
 from qgis.core import *
 
-from . import mainLST, fileio, canvasLayer
+from . import mainLST, fileio, canvasLayer, vectorprocessor
 
 
 class MainWindow(QMainWindow):
@@ -173,11 +173,17 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        filer = fileio.vectorHandler(self.filePaths["Red"][:self.filePaths["Red"].rfind("/")])
-        p1 = QgsPointXY(796930,1410674)
-        p2 = QgsPointXY(796931,1410675)
-        p3 = QgsPointXY(796931,1410674)
-        filer.saveAll({"Type1" : [QgsGeometry.fromPolygonXY([[p1, p2, p3]])]})
+        folder = self.filePaths["Red"][:self.filePaths["Red"].rfind("/")]
+        p1 = (796930,1410674)
+        p2 = (796931,1410675)
+        p3 = (796931,1410674)
+        p4 = (796935,1410674)
+        p5 = (796936,1410675)
+        p6 = (796936,1410674)
+        points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
+
+        vproc = vectorprocessor.groupStats()
+        vproc.processAll(points, folder)
 
         # layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
 
