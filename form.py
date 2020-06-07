@@ -174,12 +174,12 @@ class MainWindow(QMainWindow):
         )
 
         folder = self.filePaths["Red"][:self.filePaths["Red"].rfind("/")]
-        p1 = (796930,1410674)
-        p2 = (796931,1410675)
-        p3 = (796931,1410674)
-        p4 = (796935,1410674)
-        p5 = (796936,1410675)
-        p6 = (796936,1410674)
+        p1 = QgsPointXY(796930,1410674)
+        p2 = QgsPointXY(796931,1410675)
+        p3 = QgsPointXY(796931,1410674)
+        p4 = QgsPointXY(796935,1410674)
+        p5 = QgsPointXY(796936,1410675)
+        p6 = QgsPointXY(796936,1410674)
         points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
 
         vproc = vectorprocessor.groupStats()
