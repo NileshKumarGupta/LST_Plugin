@@ -188,3 +188,9 @@ class vectorHandler(fileHandler):
             polys = features[fclass]
             fname = self.generateFileName(fclass, "shp")
             self.saveFeatures(polys, fname, fclass)
+    
+    def loadLayer(self, fclass):
+
+        fname = self.generateFileName(fclass, "shp")
+        layer = QgsVectorLayer(fname, fclass, "ogr")
+        return layer

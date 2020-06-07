@@ -1,4 +1,5 @@
 from qgis.core import *
+from qgis.analysis import *
 
 from . import fileio
 
@@ -16,14 +17,18 @@ class groupStats(object):
     
     def saveAll(self, folder):
 
-        fhandler = fileio.vectorHandler(folder)
-        fhandler.saveAll(self.features)
+        self.fhandler = fileio.vectorHandler(folder)
+        self.fhandler.saveAll(self.features)
     
-    def calcStats(self):
+    def calcStats(self, rlayer):
 
-        pass
+        for fclass in self.features:
+            vlayer = self.fhandler.loadLayer(fclass)
+            calculator = QgsZonalStatistics(vlayer, rlayer, stats = QgsZonalStatistics.Mean)
+            calculator.calculateStatistics(None)
 
-    def processAll(self, points, folder):
+    def processAll(self, points, rlayer, folder):
 
         self.polygonize(points)
         self.saveAll(folder)
+        self.calcStats(rlayer)
