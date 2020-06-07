@@ -163,16 +163,15 @@ class vectorHandler(fileHandler):
         fileHandler.__init__(self)
         self.folder = folder
     
-    def saveFeatures(self, polys, fname, fclass):
+    def saveFeatures(self, mpoly, fname, fclass):
 
         uri = "MultiPolygon?crs=epsg:32643&field=id:integer&index=yes"
         vlayer = QgsVectorLayer(uri, "fclass", "memory")
         pr = vlayer.dataProvider()
-        for i in range(len(polys)):
-            feature = QgsFeature()
-            feature.setGeometry(polys[i])
-            feature.setAttributes([i])
-            pr.addFeatures([feature])
+        feature = QgsFeature()
+        feature.setGeometry(mpoly)
+        feature.setAttributes([0])
+        pr.addFeatures([feature])
         vlayer.updateExtents()
         save_options = QgsVectorFileWriter.SaveVectorOptions()
         save_options.driverName = "ESRI Shapefile"
@@ -187,9 +186,9 @@ class vectorHandler(fileHandler):
             self.prepareOutFolder("LSTPluginShapes")
         
         for fclass in features:
-            polys = features[fclass]
+            mpoly = features[fclass]
             fname = self.generateFileName(fclass, "shp")
-            self.saveFeatures(polys, fname, fclass)
+            self.saveFeatures(mpoly, fname, fclass)
     
     def loadLayer(self, fclass):
 
