@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         lstLayer = self.iface.mapCanvas().layers()[0]
 
         vproc = vectorprocessor.groupStats()
-        vproc.processAll(self, points, lstLayer, folder)
+        stats = vproc.processAll(self, points, lstLayer, folder)
 
     def showStatus(self, text):
         self.status.showMessage(text, 20000)

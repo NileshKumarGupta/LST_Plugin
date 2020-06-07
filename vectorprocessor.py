@@ -27,17 +27,15 @@ class groupStats(object):
         for fclass in points:
             self.layers[fclass] = self.fhandler.loadLayer(fclass)
     
-    def calcStats(self, rlayer):
+    def calcStats(self, rlayer, fclass):
 
-        self.stats = dict()
-        for fclass in self.features:
-            vlayer = self.layers[fclass]
-            statsreq = QgsZonalStatistics.Statistics(QgsZonalStatistics.Mean | QgsZonalStatistics.StDev)
-            calculator = QgsZonalStatistics(vlayer, rlayer, stats = statsreq)
-            calculator.calculateStatistics(None)
-            mpoly = list(vlayer.getFeatures())[0]
-            mean, stdev = list(mpoly.attributes())[1:]
-            self.stats[fclass] = (mean, stdev)
+        vlayer = self.layers[fclass]
+        statsreq = QgsZonalStatistics.Statistics(QgsZonalStatistics.Mean | QgsZonalStatistics.StDev)
+        calculator = QgsZonalStatistics(vlayer, rlayer, stats = statsreq)
+        calculator.calculateStatistics(None)
+        mpoly = list(vlayer.getFeatures())[0]
+        mean, stdev = list(mpoly.attributes())[1:]
+        return mean, stdev
 
     def processAll(self, form, points, rlayer, folder):
 
@@ -47,7 +45,11 @@ class groupStats(object):
         self.saveAll(folder)
         form.showStatus("Loading vector layers")
         self.getLayers(points)
-        form.showStatus("Calculating Statistics")
-        self.calcStats(rlayer)
+
+        stats = dict()
+        for fclass in self.features:
+            form.showStatus("Calculating Statistics for " + fclass)
+            stats[fclass] = self.calcStats(rlayer, fclass)
+
         form.showStatus("Finished")
-        return self.stats
+        return stats
