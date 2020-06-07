@@ -35,12 +35,19 @@ class groupStats(object):
             statsreq = QgsZonalStatistics.Statistics(QgsZonalStatistics.Mean | QgsZonalStatistics.StDev)
             calculator = QgsZonalStatistics(vlayer, rlayer, stats = statsreq)
             calculator.calculateStatistics(None)
-            self.stats[fclass] = None
+            mpoly = list(vlayer.getFeatures())[0]
+            mean, stdev = list(mpoly.attributes())[1:]
+            self.stats[fclass] = (mean, stdev)
 
     def processAll(self, form, points, rlayer, folder):
 
+        form.showStatus("Preparing multipolygons")
         self.multipolygonize(points)
+        form.showStatus("Saving shape files")
         self.saveAll(folder)
+        form.showStatus("Loading vector layers")
         self.getLayers(points)
+        form.showStatus("Calculating Statistics")
         self.calcStats(rlayer)
-        form.showStatus("Calced stats")
+        form.showStatus("Finished")
+        return self.stats
