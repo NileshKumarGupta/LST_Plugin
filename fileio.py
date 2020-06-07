@@ -4,6 +4,8 @@ from qgis.core import QgsVectorLayer, QgsFeature, QgsVectorFileWriter, QgsProjec
 from zipfile import ZipFile
 import tarfile
 
+from qgis.utils import iface
+
 class fileHandler(object):
 
     def __init__(self):
@@ -192,5 +194,5 @@ class vectorHandler(fileHandler):
     def loadLayer(self, fclass):
 
         fname = self.generateFileName(fclass, "shp")
-        layer = QgsVectorLayer(fname, fclass, "ogr")
+        layer = iface.addVectorLayer(fname, fclass, "ogr")
         return layer

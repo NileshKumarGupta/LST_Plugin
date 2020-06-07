@@ -24,11 +24,13 @@ class groupStats(object):
 
         for fclass in self.features:
             vlayer = self.fhandler.loadLayer(fclass)
-            calculator = QgsZonalStatistics(vlayer, rlayer, stats = QgsZonalStatistics.Mean)
+            stats = QgsZonalStatistics.Statistics(QgsZonalStatistics.Mean | QgsZonalStatistics.StDev)
+            calculator = QgsZonalStatistics(vlayer, rlayer, stats = stats)
             calculator.calculateStatistics(None)
 
-    def processAll(self, points, rlayer, folder):
+    def processAll(self, form, points, rlayer, folder):
 
         self.polygonize(points)
         self.saveAll(folder)
         self.calcStats(rlayer)
+        form.showStatus("Calced stats")

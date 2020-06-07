@@ -175,11 +175,11 @@ class MainWindow(QMainWindow):
 
         folder = self.filePaths["Red"][:self.filePaths["Red"].rfind("/")]
         p1 = QgsPointXY(796930,1410690)
-        p2 = QgsPointXY(797030,1410790)
-        p3 = QgsPointXY(797030,1410690)
-        p4 = QgsPointXY(797930,1410690)
-        p5 = QgsPointXY(798030,1410790)
-        p6 = QgsPointXY(798030,1410690)
+        p2 = QgsPointXY(807930,1511790)
+        p3 = QgsPointXY(807930,1410690)
+        p4 = QgsPointXY(818930,1410690)
+        p5 = QgsPointXY(829930,1511790)
+        p6 = QgsPointXY(829930,1410690)
         points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
 
 
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         lstLayer = self.iface.mapCanvas().layers()[0]
 
         vproc = vectorprocessor.groupStats()
-        vproc.processAll(points, lstLayer, folder)
+        vproc.processAll(self, points, lstLayer, folder)
 
     def showStatus(self, text):
         self.status.showMessage(text, 20000)
