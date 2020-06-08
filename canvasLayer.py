@@ -11,7 +11,30 @@ class CanvasLayer(QMainWindow):
         self.lstLayer = lstLayer
         self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
-        self.setCentralWidget(self.canvas)
+        self.setFixedHeight(700)
+        self.canvas.polygonList = list()
+
+        # layout of the widget
+
+        self.widget = QWidget()
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.canvas)
+
+        # scroll area for filling classes
+        self.scrollArea = QScrollArea()
+        self.scrollArea.setFixedHeight(200)
+
+        self.listWidget = QWidget()
+        self.listWidgetLayout = QVBoxLayout()
+        self.listWidget.setLayout(self.listWidgetLayout)
+
+        self.scrollArea.setWidget(self.listWidget)
+        self.layout.addWidget(self.scrollArea)
+
+        # go button
+        self.goButton = QPushButton("GO")
+        self.goButton.clicked.connect(lambda: self.goFunc(self.canvas.polygonList))
+        self.layout.addWidget(self.goButton)
 
         # Basic canvas settings
         self.canvas.setCanvasColor(Qt.white)
@@ -50,7 +73,7 @@ class CanvasLayer(QMainWindow):
         # basic settings end
         # add Polygon Select
 
-        self.toolPolygon = PolygonMapTool(self.canvas)
+        self.toolPolygon = PolygonMapTool(self.canvas, self.listWidgetLayout)
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.actionPolygonSelect.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolPolygon)
@@ -65,13 +88,21 @@ class CanvasLayer(QMainWindow):
 
         # self.canvas.setMapTool(self.toolPan)
 
+        self.widget.setLayout(self.layout)
+        self.setCentralWidget(self.widget)
+
+    def goFunc(self, polygonList):
+        print(self.canvas.polygonList)
+
     def removeLast(self):
         pass
 
 
 class PolygonMapTool(QgsMapToolEmitPoint):
-    def __init__(self, canvas):
+    def __init__(self, canvas, parentLayout):
+        super(QgsMapToolEmitPoint, self).__init__(canvas)
         self.canvas = canvas
+        self.parentLayout = parentLayout
 
         QgsMapToolEmitPoint.__init__(self, self.canvas)
 
@@ -79,7 +110,6 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.rubberBand.setColor(Qt.red)
         self.rubberBand.setWidth(2)
         self.pointList = list()
-        self.polygonList = list()
 
     def canvasDoubleClickEvent(self, e):
         point = self.toMapCoordinates(e.pos())
@@ -101,11 +131,35 @@ class PolygonMapTool(QgsMapToolEmitPoint):
             return
         self.rubberBand.addPoint(self.pointList[0], True)
         self.rubberBand.show()
-        self.polygonList.append(self.pointList)
-        self.pointList.clear()
+
+        cWidget, editClass = self.fillClass()
+        self.canvas.polygonList.append(
+            (self.pointList, self.rubberBand, cWidget, editClass)
+        )
+        self.pointList = list()
 
         # to make different rubberbands
 
         self.rubberBand = QgsRubberBand(self.canvas, True)
         self.rubberBand.setColor(Qt.red)
         self.rubberBand.setWidth(2)
+
+        self.fillClass()
+
+    def fillClass(self):
+        cWidget = QWidget()
+
+        hlayout = QHBoxLayout()
+        labelArea = QLabel("Area 1")
+        labelClass = QLabel("   Class : ")
+        editClass = QLineEdit("General")
+        hlayout.addWidget(labelArea)
+        hlayout.addWidget(labelClass)
+        hlayout.addWidget(editClass)
+
+        cWidget.setMinimumHeight(40)
+        cWidget.setLayout(hlayout)
+
+        self.parentLayout.addWidget(cWidget)
+
+        return cWidget, editClass

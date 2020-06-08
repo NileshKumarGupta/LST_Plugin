@@ -173,6 +173,12 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
+        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
+
+        if "LST" in layers:
+            lstLayer = layers["LST"]
+            zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+            zoneSelect.show()
 
         # Code to check VectorHandling branch functionality
         # folder = self.filePaths["Red"][:self.filePaths["Red"].rfind("/")]
@@ -186,8 +192,6 @@ class MainWindow(QMainWindow):
         # lstLayer = self.iface.mapCanvas().layers()[0]
         # vproc = vectorprocessor.groupStats()
         # stats = vproc.processAll(self, points, lstLayer, folder)
-
-        
 
     def showStatus(self, text):
         self.status.showMessage(text, 20000)
