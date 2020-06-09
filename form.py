@@ -6,7 +6,7 @@ from qgis.core import QgsRasterLayer
 
 from qgis.core import *
 
-from . import mainLST, fileio, canvasLayer, vectorprocessor
+from . import mainLST, fileio, canvasLayer
 
 
 class MainWindow(QMainWindow):
@@ -201,13 +201,14 @@ class MainWindow(QMainWindow):
 
         layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
 
+        folder = self.filePaths["Red"][: self.filePaths["Red"].rfind("/")]
+
         if "LST" in layers:
             lstLayer = layers["LST"]
-            zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
             zoneSelect.show()
 
         # Code to check VectorHandling branch functionality
-        # folder = self.filePaths["Red"][:self.filePaths["Red"].rfind("/")]
         # p1 = QgsPointXY(796930,1410690)
         # p2 = QgsPointXY(807930,1511790)
         # p3 = QgsPointXY(807930,1410690)

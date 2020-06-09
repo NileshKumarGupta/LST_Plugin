@@ -6,14 +6,17 @@ from qgis.core import QgsRasterLayer
 
 from . import vectorprocessor, fileio
 
+
 class CanvasLayer(QMainWindow):
-    def __init__(self, lstLayer, pointdict):
+    def __init__(self, form, lstLayer, folder):
         super(QMainWindow, self).__init__()
         self.lstLayer = lstLayer
         self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
         self.setFixedHeight(700)
         self.canvas.polygonList = list()
+        self.form = form
+        self.folder = folder
 
         # layout of the widget
 
@@ -88,17 +91,21 @@ class CanvasLayer(QMainWindow):
 
     def goFunc(self, polygonList):
         classdict = dict()
-        for entry of polygonList:
-            if(entry[3].text() == ''):
-                classdict['general'.lower()] = list()
+        for entry in polygonList:
+            if entry[3].text() == "":
+                classdict["general".lower()] = list()
             else:
                 classdict[entry[3].text().lower()] = list()
 
-        for entry of polygonList:
-            if(entry[3].text() == ''):
-                classdict['general'.lower()].append(entry[0])
+        for entry in polygonList:
+            if entry[3].text() == "":
+                classdict["general".lower()].append(entry[0])
             else:
                 classdict[entry[3].text().lower()].append(entry[0])
+
+        vproc = vectorprocessor.groupStats()
+        stats = vproc.processAll(self.form, classdict, self.lstLayer, self.folder)
+        print(stats)
 
     def removeLast(self):
         pass
