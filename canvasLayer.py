@@ -133,7 +133,12 @@ class PolygonMapTool(QgsMapToolEmitPoint):
             vertex = QgsVertexMarker(self.canvas)
             vertex.setCenter(point)
             vertex.setColor(Qt.red)
+            vertex.setIconType(QgsVertexMarker.ICON_CIRCLE)
+
+            QToolTip.setFont(QFont("SansSerif", 12))
+            vertex.setToolTip("Area " + str(self.polygonCount))
             vertex.show()
+
             self.rubberBand.addPoint(point, False)
         else:
             self.rubberBand.addPoint(point, True)
