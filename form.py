@@ -216,8 +216,6 @@ class MainWindow(QMainWindow):
         # p6 = QgsPointXY(829930,1410690)
         # points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
         # lstLayer = self.iface.mapCanvas().layers()[0]
-        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-        zoneSelect.show()
         # vproc = vectorprocessor.groupStats()
         # stats = vproc.processAll(self, points, lstLayer, folder)
 

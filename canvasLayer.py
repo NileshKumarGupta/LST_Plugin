@@ -4,9 +4,10 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import *
 from qgis.core import QgsRasterLayer
 
+from . import vectorprocessor, fileio
 
 class CanvasLayer(QMainWindow):
-    def __init__(self, lstLayer):
+    def __init__(self, lstLayer, pointdict):
         super(QMainWindow, self).__init__()
         self.lstLayer = lstLayer
         self.canvas = QgsMapCanvas()
@@ -86,7 +87,18 @@ class CanvasLayer(QMainWindow):
         self.setCentralWidget(self.widget)
 
     def goFunc(self, polygonList):
-        print(self.canvas.polygonList)
+        classdict = dict()
+        for entry of polygonList:
+            if(entry[3].text() == ''):
+                classdict['general'.lower()] = list()
+            else:
+                classdict[entry[3].text().lower()] = list()
+
+        for entry of polygonList:
+            if(entry[3].text() == ''):
+                classdict['general'.lower()].append(entry[0])
+            else:
+                classdict[entry[3].text().lower()].append(entry[0])
 
     def removeLast(self):
         pass
