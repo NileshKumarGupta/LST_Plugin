@@ -75,7 +75,6 @@ def displayOnScreen(resultStates, resultNames, filer):
             )
     return layers
 
-
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     """
