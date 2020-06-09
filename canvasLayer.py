@@ -82,7 +82,9 @@ class CanvasLayer(QMainWindow):
         # add Undo
         self.actionUndo = QAction("Undo", self)
         self.toolbar.addAction(self.actionUndo)
-        self.actionUndo.triggered.connect(lambda: self.removeLast)
+        self.actionUndo.triggered.connect(
+            lambda: self.removeLast(self.canvas.polygonList)
+        )
 
         # self.canvas.setMapTool(self.toolPan)
 
@@ -105,10 +107,16 @@ class CanvasLayer(QMainWindow):
 
         vproc = vectorprocessor.groupStats()
         stats = vproc.processAll(self.form, classdict, self.lstLayer, self.folder)
-        print(stats)
 
-    def removeLast(self):
-        pass
+        self.close()
+
+    def removeLast(self, polygonList):
+        if not len(polygonList):
+            return
+        removedEntry = polygonList.pop()
+        removedEntry[1].hide()
+        removedEntry[2].hide()
+        removedEntry[4].hide()
 
 
 class PolygonMapTool(QgsMapToolEmitPoint):
@@ -123,6 +131,7 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.pointList = list()
         self.polygonCount = 1
         self.templayout = QVBoxLayout()
+        self.vertex = QgsVertexMarker(self.canvas)
 
     def canvasDoubleClickEvent(self, e):
         point = self.toMapCoordinates(e.pos())
@@ -130,14 +139,14 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         print(point)
         self.pointList.append(point)
         if len(self.pointList) == 1:
-            vertex = QgsVertexMarker(self.canvas)
-            vertex.setCenter(point)
-            vertex.setColor(Qt.red)
-            vertex.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            self.vertex = QgsVertexMarker(self.canvas)
+            self.vertex.setCenter(point)
+            self.vertex.setColor(Qt.red)
+            self.vertex.setIconType(QgsVertexMarker.ICON_CIRCLE)
 
             QToolTip.setFont(QFont("SansSerif", 12))
-            vertex.setToolTip("Area " + str(self.polygonCount))
-            vertex.show()
+            self.vertex.setToolTip("Area " + str(self.polygonCount))
+            self.vertex.show()
 
             self.rubberBand.addPoint(point, False)
         else:
@@ -152,7 +161,7 @@ class PolygonMapTool(QgsMapToolEmitPoint):
 
         cWidget, editClass = self.fillClass()
         self.canvas.polygonList.append(
-            (self.pointList, self.rubberBand, cWidget, editClass)
+            (self.pointList, self.rubberBand, cWidget, editClass, self.vertex)
         )
         self.pointList = list()
 
