@@ -199,9 +199,7 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        layers = mainLST.processAll(self, self.filePaths, resultStates, satType)
-
-        folder = self.filePaths["Red"][: self.filePaths["Red"].rfind("/")]
+        layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
 
         if "LST" in layers:
             lstLayer = layers["LST"]

@@ -118,4 +118,4 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     form.showStatus("Finished")
 
-    return layers
+    return layers, filer.folder
