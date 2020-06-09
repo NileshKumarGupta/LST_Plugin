@@ -10,7 +10,16 @@ from . import mainLST, fileio, canvasLayer, vectorprocessor
 
 
 class MainWindow(QMainWindow):
+
+    """
+    Class in charge of all user interfacing
+    """
+
     def addCheckBox(self, text, defaultChecked=False):
+
+        """
+        Add a checkbox (specifically for listing output types needed)
+        """
 
         lstcheckbox = QCheckBox(text)
         lstcheckbox.setChecked(defaultChecked)
@@ -18,6 +27,10 @@ class MainWindow(QMainWindow):
         self.checkboxes.append(lstcheckbox)
 
     def __init__(self, iface):
+
+        """
+        Generate the pyqt5 user interface
+        """
 
         self.iface = iface
         super(MainWindow, self).__init__()
@@ -28,13 +41,6 @@ class MainWindow(QMainWindow):
         layers = iface.mapCanvas().layers()
         for layer in layers:
             self.layerInfor[layer.name()] = layer.dataProvider().dataSourceUri()
-
-        # lstLayer = self.iface.mapCanvas().layers()[0]
-
-        # zoneSelect = canvasLayer.CanvasLayer(lstLayer)
-        # zoneSelect.show()
-
-        # print(self.layerInfor)
 
         self.setWindowTitle("LST Plugin")
 
@@ -50,10 +56,10 @@ class MainWindow(QMainWindow):
         for band in ("Red", "Near-IR", "Thermal-IR"):
             self.layout.addWidget(self.browseFile(band))
 
-        # select data type
+        # select satellite type
         dtwidget = QWidget()
         hlayout = QHBoxLayout()
-        label = QLabel("Select Data Type")
+        label = QLabel("Select Satellite Type")
         lst5button = QRadioButton("Landsat5")
         lst8button = QRadioButton("Landsat8")
         lst8button.setChecked(True)
@@ -97,7 +103,6 @@ class MainWindow(QMainWindow):
         self.addCheckBox("Proportion of Vegetation")
         self.addCheckBox("Land Surface Emissivity")
         self.addCheckBox("Land Surface Temperature", defaultChecked=True)
-        # check through ischecked()
 
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
@@ -116,10 +121,16 @@ class MainWindow(QMainWindow):
         mainWidget.setLayout(self.layout)
         self.setCentralWidget(mainWidget)
 
+        # status bar for status updates
         self.status = QStatusBar()
         self.setStatusBar(self.status)
 
     def browseFile(self, band):
+
+        """
+        Select a file for a particular band
+        """
+
         filesel = QWidget()
         hlayout = QHBoxLayout()
 
@@ -149,12 +160,22 @@ class MainWindow(QMainWindow):
         return filesel
 
     def getLayers(self, pathField, addr, band):
+
+        """
+        Get filepath of layer selected
+        """
+
         if addr == "Select a layer":
             return
         pathField.setText(addr)
         self.filePaths[band] = addr
 
     def getFiles(self, pathField, band):
+
+        """
+        Get filepath of file selected
+        """
+
         fp = QFileDialog.getOpenFileName()
         if not (fp[0]):
             return
@@ -162,6 +183,11 @@ class MainWindow(QMainWindow):
         self.filePaths[band] = fp[0]
 
     def goFunc(self):
+
+        """
+        Called when the go button is pressed
+        Begins the processing
+        """
 
         resultStates = []
         for box in self.checkboxes:
@@ -190,13 +216,25 @@ class MainWindow(QMainWindow):
         # p6 = QgsPointXY(829930,1410690)
         # points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
         # lstLayer = self.iface.mapCanvas().layers()[0]
+        zoneSelect = canvasLayer.CanvasLayer(lstLayer)
+        zoneSelect.show()
         # vproc = vectorprocessor.groupStats()
         # stats = vproc.processAll(self, points, lstLayer, folder)
 
     def showStatus(self, text):
+
+        """
+        Show a message on the status bar
+        """
+
         self.status.showMessage(text, 20000)
 
     def showError(self, err):
+
+        """
+        Raise an error as a message box
+        """
+
         self.showStatus(err)
         messageBox = QMessageBox()
         messageBox.critical(None, "", err)
