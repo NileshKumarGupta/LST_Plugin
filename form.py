@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
         label.setText("Select Outputs")
         label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(label)
+
         # checkbox for various outputs
         self.addCheckBox("TOA Spectral Radiance")
         self.addCheckBox("At Sensor Brightness Temperature")
@@ -141,6 +142,8 @@ class MainWindow(QMainWindow):
         selLayer = QComboBox()
         selLayer.addItem("Select a Layer")
         self.layerInfor["Select a Layer"] = "Select a layer"
+
+        print(self.layerInfor)
 
         for name in self.layerInfor:
             selLayer.addItem(name)
