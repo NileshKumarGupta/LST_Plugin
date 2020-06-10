@@ -94,16 +94,16 @@ class CanvasLayer(QMainWindow):
     def goFunc(self, polygonList):
         classdict = dict()
         for entry in polygonList:
-            if entry[3].text() == "":
+            if entry[3].currentText() == "":
                 classdict["general".lower()] = list()
             else:
-                classdict[entry[3].text().lower()] = list()
+                classdict[entry[3].currentText().lower()] = list()
 
         for entry in polygonList:
-            if entry[3].text() == "":
+            if entry[3].currentText() == "":
                 classdict["general".lower()].append(entry[0])
             else:
-                classdict[entry[3].text().lower()].append(entry[0])
+                classdict[entry[3].currentText().lower()].append(entry[0])
 
         vproc = vectorprocessor.groupStats()
         stats = vproc.processAll(self.form, classdict, self.lstLayer, self.folder)
@@ -117,6 +117,8 @@ class CanvasLayer(QMainWindow):
         removedEntry[1].hide()
         removedEntry[2].hide()
         removedEntry[4].hide()
+
+        # to modify so as to remove current drawing
 
 
 class PolygonMapTool(QgsMapToolEmitPoint):
@@ -132,6 +134,8 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.polygonCount = 1
         self.templayout = QVBoxLayout()
         self.vertex = QgsVertexMarker(self.canvas)
+        self.preClasses = ["Water Body", "Land Body"]
+        self.lastDropDown = None
 
     def canvasDoubleClickEvent(self, e):
         point = self.toMapCoordinates(e.pos())
@@ -178,10 +182,29 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         labelArea = QLabel("Area " + str(self.polygonCount))
         self.polygonCount += 1
         labelClass = QLabel("   Class : ")
-        editClass = QLineEdit("General")
+
+        dropDown = QComboBox()
+        if self.lastDropDown:
+            print(self.lastDropDown.currentText())
+            if not self.preClasses.__contains__(self.lastDropDown.currentText()):
+                self.preClasses.append(self.lastDropDown.currentText())
+
+        for item in self.preClasses:
+            dropDown.addItem(item)
+        dropDown.addItem("Add New Class")
+
+        dropDown.setFixedWidth(100)
+
+        # dropDown.setEditable(True)
+        dropDown.activated.connect(lambda index: self.addNew(index, dropDown))
+
+        self.lastDropDown = dropDown
+        # set fixed width
+        # remove new class item
+
         hlayout.addWidget(labelArea)
         hlayout.addWidget(labelClass)
-        hlayout.addWidget(editClass)
+        hlayout.addWidget(dropDown)
 
         cWidget.setMinimumHeight(40)
         cWidget.setLayout(hlayout)
@@ -193,4 +216,11 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         templistwidget.setLayout(self.templayout)
         self.scrollArea.setWidget(templistwidget)
 
-        return cWidget, editClass
+        return cWidget, dropDown
+
+    def addNew(self, index, dropDown):
+        if index == dropDown.count() - 1:
+            dropDown.setEditable(True)
+            dropDown.setItemText(index, "")
+        else:
+            dropDown.setEditable(False)
