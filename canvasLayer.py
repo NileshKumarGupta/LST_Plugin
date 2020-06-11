@@ -139,6 +139,7 @@ class CanvasLayer(QMainWindow):
         self.finalWidget = QWidget()
         self.finalWidget.setLayout(self.tableLayout)
         self.setCentralWidget(self.finalWidget)
+        self.toolbar.hide()
 
     def removeLast(self, polygonList):
         if not len(polygonList):
