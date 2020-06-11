@@ -24,6 +24,9 @@ class CanvasLayer(QMainWindow):
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.canvas)
 
+        # layout for showing the processed data
+        self.tableLayout = QVBoxLayout()
+
         # scroll area for filling classes
         self.scrollArea = QScrollArea()
         self.scrollArea.setFixedHeight(200)
@@ -107,8 +110,35 @@ class CanvasLayer(QMainWindow):
 
         vproc = vectorprocessor.groupStats()
         stats = vproc.processAll(self.form, classdict, self.lstLayer, self.folder)
+        print(stats)
 
-        self.close()
+        # add table to tableLayout
+        tableWidget = QTableWidget()
+        tableWidget.setColumnCount(3)
+        tableWidget.setRowCount(len(stats) + 1)
+
+        # set headings
+        tableWidget.setItem(0, 0, QTableWidgetItem("Classes"))
+        tableWidget.setItem(0, 1, QTableWidgetItem("Mean"))
+        tableWidget.setItem(0, 2, QTableWidgetItem("Standard Deviation"))
+
+        rownum = 1
+        # add all entries
+        for key in stats:
+            tableWidget.setItem(rownum, 0, QTableWidgetItem(key))
+            tableWidget.setItem(
+                rownum, 1, QTableWidgetItem(str(round(stats[key][0], 2)))
+            )
+            tableWidget.setItem(
+                rownum, 2, QTableWidgetItem(str(round(stats[key][1], 2)))
+            )
+            rownum += 1
+
+        # add to layout
+        self.tableLayout.addWidget(tableWidget)
+        self.finalWidget = QWidget()
+        self.finalWidget.setLayout(self.tableLayout)
+        self.setCentralWidget(self.finalWidget)
 
     def removeLast(self, polygonList):
         if not len(polygonList):
