@@ -124,15 +124,21 @@ class CanvasLayer(QMainWindow):
 
         rownum = 1
         # add all entries
-        for name, data in stats:
-            tableWidget.setItem(rownum, 0, QTableWidgetItem(name))
-            tableWidget.setItem(rownum, 1, QTableWidgetItem(datap[0]))
-            tableWidget.setItem(rownum, 1, QTableWidgetItem(datap[1]))
+        for key in stats:
+            tableWidget.setItem(rownum, 0, QTableWidgetItem(key))
+            tableWidget.setItem(
+                rownum, 1, QTableWidgetItem(str(round(stats[key][0], 2)))
+            )
+            tableWidget.setItem(
+                rownum, 2, QTableWidgetItem(str(round(stats[key][1], 2)))
+            )
+            rownum += 1
 
         # add to layout
         self.tableLayout.addWidget(tableWidget)
-        self.widget.setLayout(self.tableLayout)
-        self.setCentralWidget(self.widget)
+        self.finalWidget = QWidget()
+        self.finalWidget.setLayout(self.tableLayout)
+        self.setCentralWidget(self.finalWidget)
 
     def removeLast(self, polygonList):
         if not len(polygonList):
