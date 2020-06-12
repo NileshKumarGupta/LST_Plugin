@@ -1,8 +1,10 @@
 import numpy as np
-import gdal, os
-from qgis.core import QgsVectorLayer, QgsFeature, QgsVectorFileWriter, QgsProject
+import gdal, os, tarfile
 from zipfile import ZipFile
-import tarfile
+import processing
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsCoordinateTransform, QgsProject, QgsFeature
+
+gdal.UseExceptions()
 
 from qgis.utils import iface
 
@@ -42,6 +44,9 @@ class fileHandler(object):
             self.driver = im.GetDriver()
             self.geoTransform = im.GetGeoTransform()
             self.projection = im.GetProjection()
+            layer = QgsRasterLayer(filepath, "Temp")
+            self.extent = layer.extent()
+            self.crs = layer.crs()
         del im
         return array
 
@@ -57,18 +62,18 @@ class fileHandler(object):
         recognised = False
         bands = {"Error": None}
         for ext in [".tar.gz", ".tar", ".zip", ".gz"]:
-            if filepath.endswith(ext):
+            if(filepath.lower().endswith(ext)):
                 recognised = True
         if not (recognised):
             bands["Error"] = "Unknown compressed file format"
             return bands
         self.folder = filepath[: filepath.rfind("/")]
 
-        if filepath.endswith(".zip"):
-            compressed = ZipFile(filepath, "r")
+        if(filepath.lower().endswith(".zip")):
+            compressed = ZipFile(filepath, 'r')
             extract = compressed.extract
             listoffiles = compressed.namelist()
-        elif filepath.endswith(".gz"):
+        elif(filepath.lower().endswith(".gz")):
             compressed = tarfile.open(filepath, "r:gz")
             extract = compressed.extract
             listoffiles = [member.name for member in compressed.getmembers()]
@@ -78,8 +83,8 @@ class fileHandler(object):
             listoffiles = compressed.getmembers()
 
         for filename in listoffiles:
-            if filename.endswith("MTL.txt"):
-                if filename[:4] == "LC08":
+            if(filename.upper().endswith("MTL.TXT")):
+                if(filename[:4] == "LC08"):
                     bands["sat_type"] = "Landsat8"
                     sat_type = "Landsat8"
                 if filename[:4] == "LT05":
@@ -92,20 +97,29 @@ class fileHandler(object):
             compressed.close()
             return bands
 
-        sat_bands = {
-            "Landsat5": {"Red": "B3", "Near-IR": "B4", "Thermal-IR": "B6"},
-            "Landsat8": {"Red": "B4", "Near-IR": "B5", "Thermal-IR": "B10"},
-        }
-        filepaths = dict()
+        sat_bands = {"Landsat5" : {"Red" : "B3", "Near-IR" : "B4", "Thermal-IR" : "B6"},
+                "Landsat8" : {"Red" : "B4", "Near-IR" : "B5", "Thermal-IR" : "B10"} }
+
+        shapefile = None
+        if("Shape" in filePaths):
+            shapefile = filePaths["Shape"]
+
+        filePaths = dict()
         for band in ("Red", "Near-IR", "Thermal-IR"):
             bands[band] = np.array([])
             for filename in listoffiles:
-                if filename.endswith(sat_bands[sat_type][band] + ".TIF"):
+                if(filename.upper().endswith(sat_bands[sat_type][band] + ".TIF")):
                     extract(filename)
-                    filepaths[band] = filename
+                    filePaths[band] = filename
         compressed.close()
-        for band in ("Red", "Near-IR", "Thermal-IR"):
-            bands[band] = self.readBand(filepaths[band])
+        for band in ("Red", "Near-IR", "Thermal-IR")
+            bands[band] = self.readBand(filePaths[band])
+
+        if(shapefile):
+            bands["Shape"] = self.readShapeFile(shapefile)
+            if(type(bands["Shape"]) == str):
+                bands["Error"] = bands["Shape"]
+                return bands
         return bands
 
     def loadBands(self, filepaths):
@@ -116,11 +130,31 @@ class fileHandler(object):
 
         bands = {"Error": None}
         for band in filepaths:
-            if not (filepaths[band].endswith(".TIF")):
-                bands["Error"] = "Unknown band format"
+            if(band == "Shape"):
+                continue
+            if(not(filepaths[band].lower().endswith(".tif"))):
+                bands["Error"] = "Bands must be TIFs"
                 return bands
             bands[band] = self.readBand(filepaths[band])
+        if("Shape" in filepaths):
+            bands["Shape"] = self.readShapeFile(filepaths["Shape"])
+            if(type(bands["Shape"]) == str):
+                bands["Error"] = bands["Shape"]
+                return bands
         return bands
+    
+    def readShapeFile(self, vectorfname):
+
+        """
+        Get a rasterized numpy array from the features of a shapefile
+        """
+        
+        if(not(vectorfname.lower().endswith(".shp"))):
+            return "Shapes must be SHPs"
+        vlayer = self.loadVectorLayer(vectorfname)
+        shapefile = self.generateFileName("Shape", "TIF")
+        self.rasterize(vlayer, shapefile)
+        return self.readBand(shapefile)
 
     def saveArray(self, array, fname):
 
@@ -147,6 +181,50 @@ class fileHandler(object):
         https://gis.stackexchange.com/questions/37238/writing-numpy-array-to-raster-file
         was incredibly useful.
         """
+    
+    def loadVectorLayer(self, fname):
+
+        """
+        Load a vector layer, using qgis core functionality
+        """
+
+        layer = QgsVectorLayer(fname, "Shape", "ogr")
+        return layer
+    
+    def rasterize(self, vlayer, fname, res = 30):
+
+        """
+        Convert a vector layer to a raster layer, handle CRS differences
+        """
+
+        rfile = self.driver.Create(fname, self.cols, self.rows, bands=1, eType = gdal.GDT_Float32)
+        rfile.SetProjection(self.projection)
+        rfile.SetGeoTransform(self.geoTransform)
+        rfile = None
+
+        if(self.crs != vlayer.crs()):
+            parameters = {"INPUT" : vlayer, "TARGET_CRS" : self.crs, "OUTPUT" : "TEMPORARY_OUTPUT"}
+            vlayer = processing.run("native:reprojectlayer", parameters)["OUTPUT"]
+
+        xmin = self.extent.xMinimum()
+        xmax = self.extent.xMaximum()
+        ymin = self.extent.yMinimum()
+        ymax = self.extent.yMaximum()
+
+        parameters = {
+            "INPUT" : vlayer,
+            "FIELD" : "id",
+            "HEIGHT": res,
+            "WIDTH" : res,
+            "BURN"  : 0,
+            "UNITS" : 1,
+            "EXTENT":"%f,%f,%f,%f"% (xmin, xmax, ymin, ymax),
+            "DATA_TYPE" : 5,
+            "NODATA" : 1,
+            "OUTPUT": fname
+        }
+        processing.run("gdal:rasterize", parameters)
+        vlayer = None
 
     def prepareOutFolder(self, ftype="LSTPluginResults"):
 
@@ -168,7 +246,9 @@ class fileHandler(object):
         """
         Generate a filepath for topic
         """
-
+        
+        if(not(self.outfolder)):
+            self.prepareOutFolder()
         return self.outfolder + "/" + topic + "." + ftype
 
     def saveAll(self, arrays):
