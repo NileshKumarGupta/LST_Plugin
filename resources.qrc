@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/plugins/LandSurfaceTemperature" >
+  <qresource prefix="/plugins/LST_Plugin" >
      <file>icon.png</file>
   </qresource>
 </RCC>

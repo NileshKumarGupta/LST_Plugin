@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         for layer in layers:
             self.layerInfor[layer.name()] = layer.dataProvider().dataSourceUri()
 
-        self.setWindowTitle("Land Surface Temperature")
+        self.setWindowTitle("LST_Plugin")
 
         self.layout = QVBoxLayout()
 
