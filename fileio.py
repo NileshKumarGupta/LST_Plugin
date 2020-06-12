@@ -2,7 +2,7 @@ import numpy as np
 import gdal, os, tarfile
 from zipfile import ZipFile
 import processing
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsCoordinateTransform, QgsProject, QgsFeature
+from qgis.core import *
 
 gdal.UseExceptions()
 
@@ -112,7 +112,7 @@ class fileHandler(object):
                     extract(filename)
                     filePaths[band] = filename
         compressed.close()
-        for band in ("Red", "Near-IR", "Thermal-IR")
+        for band in ("Red", "Near-IR", "Thermal-IR"):
             bands[band] = self.readBand(filePaths[band])
 
         if(shapefile):
