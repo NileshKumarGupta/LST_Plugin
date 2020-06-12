@@ -4,9 +4,9 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import QgsMapCanvas
 from qgis.core import QgsRasterLayer
 
+import time
+from . import mainLST, benchmarker, fileio, canvasLayer
 from qgis.core import *
-
-from . import mainLST, fileio, canvasLayer
 
 
 class MainWindow(QMainWindow):
@@ -91,6 +91,18 @@ class MainWindow(QMainWindow):
         h_line.setFrameShape(QFrame.HLine)
         self.layout.addWidget(h_line)
 
+        # select shapefile, optional
+
+        label = QLabel("Optional - Limit calculations to shapefile")
+        label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(label)
+
+        self.layout.addWidget(self.browseFile("Shape"))
+
+        h_line = QFrame()
+        h_line.setFrameShape(QFrame.HLine)
+        self.layout.addWidget(h_line)
+
         # select output types lable
         label = QLabel()
         label.setText("Select Outputs")
@@ -113,6 +125,17 @@ class MainWindow(QMainWindow):
         goButton = QPushButton("Go")
         goButton.clicked.connect(self.goFunc)
         self.layout.addWidget(goButton)
+
+
+        h_line = QFrame()
+        h_line.setFrameShape(QFrame.HLine)
+        self.layout.addWidget(h_line)
+
+        # run benchmark button
+        bmbutton = QPushButton("Run BenchMark")
+        bmbutton.clicked.connect(lambda: self.runBenchmark())
+        self.layout.addWidget(bmbutton)
+
 
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
@@ -170,6 +193,11 @@ class MainWindow(QMainWindow):
 
         if addr == "Select a layer":
             return
+        if(not(addr.lower().endswith(".tif")) and not(addr.lower().endswith(".shp"))):
+            lastmatch = addr.lower().rfind(".tif")
+            if(lastmatch == -1):
+                lastmatch = addr.lower().rfind(".shp")
+            addr = addr[:lastmatch + 4]
         pathField.setText(addr)
         self.filePaths[band] = addr
 
@@ -202,24 +230,15 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
+        start_time = time.time()
         layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
+        end_time = time.time()
+        self.showStatus("Finished, process time - " + str(int(end_time - start_time)) + " seconds")
 
         if "LST" in layers:
             lstLayer = layers["LST"]
             zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
             zoneSelect.show()
-
-        # Code to check VectorHandling branch functionality
-        # p1 = QgsPointXY(796930,1410690)
-        # p2 = QgsPointXY(807930,1511790)
-        # p3 = QgsPointXY(807930,1410690)
-        # p4 = QgsPointXY(818930,1410690)
-        # p5 = QgsPointXY(829930,1511790)
-        # p6 = QgsPointXY(829930,1410690)
-        # points = {"Type1" : [[p1, p2, p3], [p4, p5, p6]], "Type2" : [[p1, p5, p3]]}
-        # lstLayer = self.iface.mapCanvas().layers()[0]
-        # vproc = vectorprocessor.groupStats()
-        # stats = vproc.processAll(self, points, lstLayer, folder)
 
     def showStatus(self, text):
 
@@ -227,7 +246,7 @@ class MainWindow(QMainWindow):
         Show a message on the status bar
         """
 
-        self.status.showMessage(text, 20000)
+        self.status.showMessage(text, 60000)
 
     def showError(self, err):
 
@@ -238,3 +257,7 @@ class MainWindow(QMainWindow):
         self.showStatus(err)
         messageBox = QMessageBox()
         messageBox.critical(None, "", err)
+
+    def runBenchmark(self):
+        
+        benchmarker.benchmark(self)

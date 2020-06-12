@@ -94,6 +94,18 @@ class CanvasLayer(QMainWindow):
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
 
+        self.status = QStatusBar()
+        self.setStatusBar(self.status)
+    
+    def showStatus(self, text):
+
+        """
+        Show a message on the status bar
+        """
+
+        self.status.showMessage(text, 20000)
+
+
     def goFunc(self, polygonList):
         classdict = dict()
         for entry in polygonList:
@@ -109,7 +121,7 @@ class CanvasLayer(QMainWindow):
                 classdict[entry[3].currentText().lower()].append(entry[0])
 
         vproc = vectorprocessor.groupStats()
-        stats = vproc.processAll(self.form, classdict, self.lstLayer, self.folder)
+        stats = vproc.processAll(self, classdict, self.lstLayer, self.folder)
         print(stats)
 
         # add table to tableLayout
