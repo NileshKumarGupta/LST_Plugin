@@ -2,9 +2,12 @@ import numpy as np
 import gdal, os, tarfile
 from zipfile import ZipFile
 import processing
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsCoordinateTransform, QgsProject
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsCoordinateTransform, QgsProject, QgsFeature
 
 gdal.UseExceptions()
+
+from qgis.utils import iface
+
 
 class fileHandler(object):
 
@@ -14,8 +17,8 @@ class fileHandler(object):
 
     def __init__(self):
 
-        self.folder = ""            ## Folder in which all operations are ongoing
-        self.outfolder = ""         ## Folder in which to place outputs
+        self.folder = ""  ## Folder in which all operations are ongoing
+        self.outfolder = ""  ## Folder in which to place outputs
 
         ## Tif writing data, copied from input
         self.rows = 0
@@ -33,9 +36,9 @@ class fileHandler(object):
 
         im = gdal.Open(filepath)
         array = im.ReadAsArray().astype(np.float32)
-        if(not(self.folder)):
-            self.folder = filepath[:filepath.rfind('/')]
-        if(not(self.driver)):
+        if not (self.folder):
+            self.folder = filepath[: filepath.rfind("/")]
+        if not (self.driver):
             self.rows = im.RasterYSize
             self.cols = im.RasterXSize
             self.driver = im.GetDriver()
@@ -57,14 +60,14 @@ class fileHandler(object):
 
         filepath = filePaths["zip"]
         recognised = False
-        bands = {"Error" : None}
+        bands = {"Error": None}
         for ext in [".tar.gz", ".tar", ".zip", ".gz"]:
             if(filepath.lower().endswith(ext)):
                 recognised = True
-        if(not(recognised)):
+        if not (recognised):
             bands["Error"] = "Unknown compressed file format"
             return bands
-        self.folder = filepath[:filepath.rfind("/")]
+        self.folder = filepath[: filepath.rfind("/")]
 
         if(filepath.lower().endswith(".zip")):
             compressed = ZipFile(filepath, 'r')
@@ -75,7 +78,7 @@ class fileHandler(object):
             extract = compressed.extract
             listoffiles = [member.name for member in compressed.getmembers()]
         else:
-            compressed = tarfile.open(filepath, 'r')
+            compressed = tarfile.open(filepath, "r")
             extract = compressed.extract
             listoffiles = compressed.getmembers()
 
@@ -84,11 +87,13 @@ class fileHandler(object):
                 if(filename[:4] == "LC08"):
                     bands["sat_type"] = "Landsat8"
                     sat_type = "Landsat8"
-                if(filename[:4] == "LT05"):
+                if filename[:4] == "LT05":
                     bands["sat_type"] = "Landsat5"
                     sat_type = "Landsat5"
-        if("sat_type" not in bands):
-            bands["Error"] = "Unknown satellite - Please verify that files have not been renamed"
+        if "sat_type" not in bands:
+            bands[
+                "Error"
+            ] = "Unknown satellite - Please verify that files have not been renamed"
             compressed.close()
             return bands
 
@@ -107,7 +112,7 @@ class fileHandler(object):
                     extract(filename)
                     filePaths[band] = filename
         compressed.close()
-        for band in ("Red", "Near-IR", "Thermal-IR"):
+        for band in ("Red", "Near-IR", "Thermal-IR")
             bands[band] = self.readBand(filePaths[band])
 
         if(shapefile):
@@ -123,7 +128,7 @@ class fileHandler(object):
         Gets band data as numpy arrays, from a dict of filepaths
         """
 
-        bands = {"Error" : None}
+        bands = {"Error": None}
         for band in filepaths:
             if(band == "Shape"):
                 continue
@@ -159,7 +164,9 @@ class fileHandler(object):
         Should not be used directly, use saveAll instead
         """
 
-        outDS = self.driver.Create(fname, self.cols, self.rows, bands=1, eType = gdal.GDT_Float32)
+        outDS = self.driver.Create(
+            fname, self.cols, self.rows, bands=1, eType=gdal.GDT_Float32
+        )
         outBand = outDS.GetRasterBand(1)
         outBand.WriteArray(array)
         outBand.FlushCache()
@@ -219,13 +226,13 @@ class fileHandler(object):
         processing.run("gdal:rasterize", parameters)
         vlayer = None
 
-    def prepareOutFolder(self):
+    def prepareOutFolder(self, ftype="LSTPluginResults"):
 
         """
         Make a new directory under the operating folder, for outputs
         """
 
-        outfolder = self.folder + "/LST_Plugin"
+        outfolder = self.folder + "/LSTOutputs"
         while os.path.isdir(outfolder):
             if outfolder[-1].isnumeric():
                 outfolder = outfolder[:-1] + str(1 + int(outfolder[-1]))
@@ -250,9 +257,49 @@ class fileHandler(object):
         Write each of a dict of arrays as TIF outputs
         """
 
-        if(not(self.outfolder)):
+        if not (self.outfolder):
             self.prepareOutFolder()
 
         for resultName in arrays:
             filepath = self.generateFileName(resultName, "TIF")
             self.saveArray(arrays[resultName], filepath)
+
+
+class vectorHandler(fileHandler):
+    def __init__(self, folder):
+
+        fileHandler.__init__(self)
+        self.folder = folder
+
+    def saveFeatures(self, mpoly, fname, fclass):
+
+        uri = "MultiPolygon?crs=epsg:32643&field=id:integer&index=yes"
+        vlayer = QgsVectorLayer(uri, "fclass", "memory")
+        pr = vlayer.dataProvider()
+        feature = QgsFeature()
+        feature.setGeometry(mpoly)
+        feature.setAttributes([0])
+        pr.addFeatures([feature])
+        vlayer.updateExtents()
+        save_options = QgsVectorFileWriter.SaveVectorOptions()
+        save_options.driverName = "ESRI Shapefile"
+        save_options.fileEncoding = "UTF-8"
+        transform_context = QgsProject.instance().transformContext()
+        writerfunc = QgsVectorFileWriter.writeAsVectorFormatV2
+        error = writerfunc(vlayer, fname, transform_context, save_options)
+
+    def saveAll(self, features):
+
+        if not (self.outfolder):
+            self.prepareOutFolder("LSTPluginShapes")
+
+        for fclass in features:
+            mpoly = features[fclass]
+            fname = self.generateFileName(fclass, "shp")
+            self.saveFeatures(mpoly, fname, fclass)
+
+    def loadLayer(self, fclass):
+
+        fname = self.generateFileName(fclass, "shp")
+        layer = iface.addVectorLayer(fname, fclass, "ogr")
+        return layer

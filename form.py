@@ -1,9 +1,12 @@
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
+from qgis.gui import QgsMapCanvas
+from qgis.core import QgsRasterLayer
 
 import time
-from . import mainLST, benchmarker
+from . import mainLST, benchmarker, fileio, canvasLayer
+from qgis.core import *
 
 
 class MainWindow(QMainWindow):
@@ -39,7 +42,7 @@ class MainWindow(QMainWindow):
         for layer in layers:
             self.layerInfor[layer.name()] = layer.dataProvider().dataSourceUri()
 
-        self.setWindowTitle("LST_Plugin")
+        self.setWindowTitle("LST Plugin")
 
         self.layout = QVBoxLayout()
 
@@ -105,6 +108,7 @@ class MainWindow(QMainWindow):
         label.setText("Select Outputs")
         label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(label)
+
         # checkbox for various outputs
         self.addCheckBox("TOA Spectral Radiance")
         self.addCheckBox("At Sensor Brightness Temperature")
@@ -162,6 +166,8 @@ class MainWindow(QMainWindow):
         selLayer.addItem("Select a Layer")
         self.layerInfor["Select a Layer"] = "Select a layer"
 
+        print(self.layerInfor)
+
         for name in self.layerInfor:
             selLayer.addItem(name)
         selLayer.activated.connect(
@@ -185,7 +191,7 @@ class MainWindow(QMainWindow):
         Get filepath of layer selected
         """
 
-        if(addr == "Select a layer"):
+        if addr == "Select a layer":
             return
         if(not(addr.lower().endswith(".tif")) and not(addr.lower().endswith(".shp"))):
             lastmatch = addr.lower().rfind(".tif")
@@ -202,7 +208,7 @@ class MainWindow(QMainWindow):
         """
 
         fp = QFileDialog.getOpenFileName()
-        if(not(fp[0])):
+        if not (fp[0]):
             return
         pathField.setText(fp[0])
         self.filePaths[band] = fp[0]
@@ -225,9 +231,14 @@ class MainWindow(QMainWindow):
         )
 
         start_time = time.time()
-        mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
         end_time = time.time()
         self.showStatus("Finished, process time - " + str(int(end_time - start_time)) + " seconds")
+
+        if "LST" in layers:
+            lstLayer = layers["LST"]
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
+            zoneSelect.show()
 
     def showStatus(self, text):
 
