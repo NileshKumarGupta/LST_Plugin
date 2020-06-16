@@ -4,9 +4,6 @@ from qgis.PyQt.QtCore import *
 from qgis.utils import iface
 from qgis.gui import QgsMapCanvas
 
-import os
-
-# neccesary
 from . import resources, form, procedures, fileio, canvasLayer
 
 ## Main class: LSTplugin
@@ -61,6 +58,7 @@ class LSTplugin(object):
         window = form.MainWindow(self.iface)
         window.show()
 
+
 def displayOnScreen(resultStates, resultNames, filer):
 
     """
@@ -69,11 +67,11 @@ def displayOnScreen(resultStates, resultNames, filer):
 
     layers = dict()
     for i in range(6):
-        if resultStates[i]:
-            layers[resultNames[i]] = iface.addRasterLayer(
+        if resultStates[i][0]:
+            iface.addRasterLayer(
                 filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
             )
-    return layers
+
 
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
@@ -86,7 +84,7 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     form.showStatus("Loading Files")
 
-    if("zip" in filePaths):
+    if "zip" in filePaths:
         form.showStatus("Extracting Files")
         bands = filer.loadZip(filePaths)
         satType = bands["sat_type"]
@@ -112,10 +110,12 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
 
     form.showStatus("Displaying Outputs")
 
-    layers = None
-    resultNames = ["TOA", "BT", "NDVI", "PV", "LSE", "LST"]
+    resultNames = []
+    for res in resultStates:
+        resultNames.append(res[1])
+
     if displayResults:
-        layers = displayOnScreen(resultStates, resultNames, filer)
+        displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")
 

@@ -213,7 +213,6 @@ class fileHandler(object):
 
         parameters = {
             "INPUT" : vlayer,
-            "FIELD" : "id",
             "HEIGHT": res,
             "WIDTH" : res,
             "BURN"  : 0,

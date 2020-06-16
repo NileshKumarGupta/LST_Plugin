@@ -15,17 +15,6 @@ class MainWindow(QMainWindow):
     Class in charge of all user interfacing
     """
 
-    def addCheckBox(self, text, defaultChecked=False):
-
-        """
-        Add a checkbox (specifically for listing output types needed)
-        """
-
-        lstcheckbox = QCheckBox(text)
-        lstcheckbox.setChecked(defaultChecked)
-        self.layout.addWidget(lstcheckbox)
-        self.checkboxes.append(lstcheckbox)
-
     def __init__(self, iface):
 
         """
@@ -126,7 +115,6 @@ class MainWindow(QMainWindow):
         goButton.clicked.connect(self.goFunc)
         self.layout.addWidget(goButton)
 
-
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
         self.layout.addWidget(h_line)
@@ -135,7 +123,6 @@ class MainWindow(QMainWindow):
         bmbutton = QPushButton("Run BenchMark")
         bmbutton.clicked.connect(lambda: self.runBenchmark())
         self.layout.addWidget(bmbutton)
-
 
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
@@ -193,11 +180,11 @@ class MainWindow(QMainWindow):
 
         if addr == "Select a layer":
             return
-        if(not(addr.lower().endswith(".tif")) and not(addr.lower().endswith(".shp"))):
+        if not (addr.lower().endswith(".tif")) and not (addr.lower().endswith(".shp")):
             lastmatch = addr.lower().rfind(".tif")
-            if(lastmatch == -1):
+            if lastmatch == -1:
                 lastmatch = addr.lower().rfind(".shp")
-            addr = addr[:lastmatch + 4]
+            addr = addr[: lastmatch + 4]
         pathField.setText(addr)
         self.filePaths[band] = addr
 
@@ -222,7 +209,7 @@ class MainWindow(QMainWindow):
 
         resultStates = []
         for box in self.checkboxes:
-            resultStates.append(box.isChecked())
+            resultStates.append((box[0].isChecked(), box[1].text() or box[0].text()))
 
         satType = (
             self.radios[0].text()
@@ -233,7 +220,33 @@ class MainWindow(QMainWindow):
         start_time = time.time()
         layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
         end_time = time.time()
-        self.showStatus("Finished, process time - " + str(int(end_time - start_time)) + " seconds")
+        self.showStatus(
+            "Finished, process time - " + str(int(end_time - start_time)) + " seconds"
+        )
+
+    def addCheckBox(self, text, defaultChecked=False):
+
+        """
+        Add a checkbox (specifically for listing output types needed)
+        and a line edit to specify file name for output
+        """
+
+        widget = QWidget()
+        localLayout = QHBoxLayout()
+
+        lstcheckbox = QCheckBox(text)
+        lstcheckbox.setChecked(defaultChecked)
+        lstcheckbox.setMinimumWidth(250)
+        localLayout.addWidget(lstcheckbox)
+
+        fname = QLineEdit()
+        fname.setPlaceholderText("File Name (Optional)")
+        localLayout.addWidget(fname)
+
+        widget.setLayout(localLayout)
+
+        self.layout.addWidget(widget)
+        self.checkboxes.append((lstcheckbox, fname))
 
         if "LST" in layers:
             lstLayer = layers["LST"]
@@ -259,5 +272,5 @@ class MainWindow(QMainWindow):
         messageBox.critical(None, "", err)
 
     def runBenchmark(self):
-        
+
         benchmarker.benchmark(self)

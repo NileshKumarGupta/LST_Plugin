@@ -96,7 +96,7 @@ class CanvasLayer(QMainWindow):
 
         self.status = QStatusBar()
         self.setStatusBar(self.status)
-    
+
     def showStatus(self, text):
 
         """
@@ -104,7 +104,6 @@ class CanvasLayer(QMainWindow):
         """
 
         self.status.showMessage(text, 20000)
-
 
     def goFunc(self, polygonList):
         classdict = dict()
