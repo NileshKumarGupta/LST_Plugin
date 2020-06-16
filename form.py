@@ -126,7 +126,6 @@ class MainWindow(QMainWindow):
         goButton.clicked.connect(self.goFunc)
         self.layout.addWidget(goButton)
 
-
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
         self.layout.addWidget(h_line)
