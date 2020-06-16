@@ -95,7 +95,7 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
         bands = filer.loadBands(filePaths)
     if bands["Error"]:
         form.showError(bands["Error"])
-        return
+        return None, None
     del bands["Error"]
 
     form.showStatus("Processing")
@@ -103,7 +103,7 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
     results = processor.process(bands, satType, resultStates, form)
     if results["Error"]:
         form.showError(results["Error"])
-        return
+        return None, None
     del results["Error"]
 
     form.showStatus("Saving Outputs")

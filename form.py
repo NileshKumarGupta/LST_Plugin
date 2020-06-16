@@ -235,6 +235,9 @@ class MainWindow(QMainWindow):
         end_time = time.time()
         self.showStatus("Finished, process time - " + str(int(end_time - start_time)) + " seconds")
 
+        if(not(layers)):
+            return
+
         if "LST" in layers:
             lstLayer = layers["LST"]
             zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
