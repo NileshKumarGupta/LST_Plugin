@@ -84,14 +84,18 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
     filer = fileio.fileHandler()
     processor = procedures.processor()
 
+    print("Filer and processor initialized")
+
     form.showStatus("Loading Files")
 
     if("zip" in filePaths):
+        print("Using ZIP option")
         form.showStatus("Extracting Files")
         bands = filer.loadZip(filePaths)
         satType = bands["sat_type"]
         del bands["sat_type"]
     else:
+        print("Non-ZIP option")
         bands = filer.loadBands(filePaths)
     if bands["Error"]:
         form.showError(bands["Error"])
@@ -115,6 +119,7 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
     layers = None
     resultNames = ["TOA", "BT", "NDVI", "PV", "LSE", "LST"]
     if displayResults:
+        print("Displaying results")
         layers = displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")

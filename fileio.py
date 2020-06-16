@@ -34,10 +34,13 @@ class fileHandler(object):
         Save tif data for future use, if the class has not already done so
         """
 
+        print("reading " + filepath)
+
         im = gdal.Open(filepath)
         array = im.ReadAsArray().astype(np.float32)
         if not (self.folder):
             self.folder = filepath[: filepath.rfind("/")]
+            print("Operating folder - " + self.folder)
         if not (self.driver):
             self.rows = im.RasterYSize
             self.cols = im.RasterXSize
@@ -48,6 +51,7 @@ class fileHandler(object):
             self.extent = layer.extent()
             self.crs = layer.crs()
         del im
+        print("Read array of shape", array.shape[0], array.shape[1])
         return array
 
     def loadZip(self, filePaths):
@@ -112,11 +116,15 @@ class fileHandler(object):
                     extract(filename)
                     filePaths[band] = filename
         compressed.close()
+        print("Zipped filepaths - ")
+        print(filePaths)
         for band in ("Red", "Near-IR", "Thermal-IR"):
             bands[band] = self.readBand(filePaths[band])
 
         if(shapefile):
+            print("Opening shapefile")
             bands["Shape"] = self.readShapeFile(shapefile)
+            print("Shapefile ready (or error to be raised)")
             if(type(bands["Shape"]) == str):
                 bands["Error"] = bands["Shape"]
                 return bands
@@ -129,8 +137,11 @@ class fileHandler(object):
         """
 
         bands = {"Error": None}
+        print("Reading bands - ")
+        print(bands)
         for band in filepaths:
             if(band == "Shape"):
+                print("Shape encountered")
                 continue
             if(not(filepaths[band].lower().endswith(".tif"))):
                 bands["Error"] = "Bands must be TIFs"
@@ -149,11 +160,15 @@ class fileHandler(object):
         Get a rasterized numpy array from the features of a shapefile
         """
         
+        print("Reading " + vectorfname + " as shapefile")
         if(not(vectorfname.lower().endswith(".shp"))):
             return "Shapes must be SHPs"
+        print("Loading shapefile")
         vlayer = self.loadVectorLayer(vectorfname)
         shapefile = self.generateFileName("Shape", "TIF")
+        print("Calling rasterize")
         self.rasterize(vlayer, shapefile)
+        print("Shape ready")
         return self.readBand(shapefile)
 
     def saveArray(self, array, fname):
@@ -163,6 +178,8 @@ class fileHandler(object):
         Use TIF info saved by the class on input
         Should not be used directly, use saveAll instead
         """
+
+        print("Saving array in " + fname)
 
         outDS = self.driver.Create(
             fname, self.cols, self.rows, bands=1, eType=gdal.GDT_Float32
@@ -202,9 +219,12 @@ class fileHandler(object):
         rfile.SetGeoTransform(self.geoTransform)
         rfile = None
 
+        print("CRS types - dest: ", self.crs, "source", vlayer.crs())
+
         if(self.crs != vlayer.crs()):
             parameters = {"INPUT" : vlayer, "TARGET_CRS" : self.crs, "OUTPUT" : "TEMPORARY_OUTPUT"}
             vlayer = processing.run("native:reprojectlayer", parameters)["OUTPUT"]
+            print("CRS converted")
 
         xmin = self.extent.xMinimum()
         xmax = self.extent.xMaximum()
@@ -222,6 +242,8 @@ class fileHandler(object):
             "NODATA" : 1,
             "OUTPUT": fname
         }
+        print("Using parameters for rasterize -")
+        print(parameters)
         processing.run("gdal:rasterize", parameters)
         vlayer = None
 
@@ -239,6 +261,7 @@ class fileHandler(object):
                 outfolder += "1"
         os.makedirs(outfolder)
         self.outfolder = outfolder
+        print("Outfolder - " + self.outfolder)
 
     def generateFileName(self, topic, ftype):
 

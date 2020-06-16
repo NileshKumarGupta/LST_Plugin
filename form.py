@@ -230,12 +230,18 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
+        print("ResultsStates - ")
+        print(resultStates)
+        print("Satellite " + satType)
+
         start_time = time.time()
         layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
         end_time = time.time()
         self.showStatus("Finished, process time - " + str(int(end_time - start_time)) + " seconds")
+        print(folder)
 
         if(not(layers)):
+            print("No layers available.")
             return
 
         if "LST" in layers:
@@ -250,6 +256,7 @@ class MainWindow(QMainWindow):
         """
 
         self.status.showMessage(text, 60000)
+        print(text)
 
     def showError(self, err):
 
