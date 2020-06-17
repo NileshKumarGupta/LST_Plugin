@@ -68,9 +68,10 @@ def displayOnScreen(resultStates, resultNames, filer):
     layers = dict()
     for i in range(6):
         if resultStates[i][0]:
-            iface.addRasterLayer(
+            layers[resultNames[i]] = iface.addRasterLayer(
                 filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
             )
+    return layers
 
 
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
@@ -114,8 +115,9 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
     for res in resultStates:
         resultNames.append(res[1])
 
+    layers = None
     if displayResults:
-        displayOnScreen(resultStates, resultNames, filer)
+        layers = displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")
 

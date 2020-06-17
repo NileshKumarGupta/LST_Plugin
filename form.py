@@ -153,8 +153,6 @@ class MainWindow(QMainWindow):
         selLayer.addItem("Select a Layer")
         self.layerInfor["Select a Layer"] = "Select a layer"
 
-        print(self.layerInfor)
-
         for name in self.layerInfor:
             selLayer.addItem(name)
         selLayer.activated.connect(
@@ -224,6 +222,11 @@ class MainWindow(QMainWindow):
             "Finished, process time - " + str(int(end_time - start_time)) + " seconds"
         )
 
+        if resultStates[-1][0]:
+            lstLayer = layers[resultStates[-1][1]]
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
+            zoneSelect.show()
+
     def addCheckBox(self, text, defaultChecked=False):
 
         """
@@ -247,11 +250,6 @@ class MainWindow(QMainWindow):
 
         self.layout.addWidget(widget)
         self.checkboxes.append((lstcheckbox, fname))
-
-        if "LST" in layers:
-            lstLayer = layers["LST"]
-            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
-            zoneSelect.show()
 
     def showStatus(self, text):
 
