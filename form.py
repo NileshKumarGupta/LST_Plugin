@@ -9,6 +9,7 @@ from . import mainLST, benchmarker, fileio, canvasLayer
 from qgis.core import *
 
 
+
 class MainWindow(QMainWindow):
 
     """
@@ -106,6 +107,28 @@ class MainWindow(QMainWindow):
         self.addCheckBox("Land Surface Emissivity")
         self.addCheckBox("Land Surface Temperature", defaultChecked=True)
 
+        # horizontal line seperator
+        h_line = QFrame()
+        h_line.setFrameShape(QFrame.HLine)
+        self.layout.addWidget(h_line)
+
+        # add option to specify file output destination
+        label = QLabel("Optional - Set Destination Folder for Outputs")
+        label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(label)
+
+        sfoldlayout = QHBoxLayout()
+        pathFold = QLineEdit()
+        pathFold.setText("Output Folder Destination")
+        sfoldlayout.addWidget(pathFold)
+        selfold = QPushButton()
+        selfold.setText("Select Output Destination")
+        selfold.clicked.connect(lambda: self.getFolder(pathFold, "output"))
+        sfoldlayout.addWidget(selfold)
+        filesel = QWidget()
+        filesel.setLayout(sfoldlayout)
+        self.layout.addWidget(filesel)
+
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
         self.layout.addWidget(h_line)
@@ -114,15 +137,6 @@ class MainWindow(QMainWindow):
         goButton = QPushButton("Go")
         goButton.clicked.connect(self.goFunc)
         self.layout.addWidget(goButton)
-
-        h_line = QFrame()
-        h_line.setFrameShape(QFrame.HLine)
-        self.layout.addWidget(h_line)
-
-        # run benchmark button
-        bmbutton = QPushButton("Run BenchMark")
-        bmbutton.clicked.connect(lambda: self.runBenchmark())
-        self.layout.addWidget(bmbutton)
 
         h_line = QFrame()
         h_line.setFrameShape(QFrame.HLine)
@@ -198,6 +212,17 @@ class MainWindow(QMainWindow):
         pathField.setText(fp[0])
         self.filePaths[band] = fp[0]
 
+    def getFolder(self, pathField, name):
+        """
+        Get path of foleder selected
+        """
+
+        fp = QFileDialog.getExistingDirectory()
+        if not fp:
+            return
+        pathField.setText(fp)
+        self.filePaths[name] = fp
+
     def goFunc(self):
 
         """
@@ -243,6 +268,7 @@ class MainWindow(QMainWindow):
         localLayout.addWidget(lstcheckbox)
 
         fname = QLineEdit()
+        fname.setFixedWidth(200)
         fname.setPlaceholderText("File Name (Optional)")
         localLayout.addWidget(fname)
 
@@ -268,7 +294,3 @@ class MainWindow(QMainWindow):
         self.showStatus(err)
         messageBox = QMessageBox()
         messageBox.critical(None, "", err)
-
-    def runBenchmark(self):
-
-        benchmarker.benchmark(self)
