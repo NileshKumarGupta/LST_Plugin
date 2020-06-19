@@ -2,13 +2,14 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
 from qgis.utils import iface
+from qgis.gui import QgsMapCanvas
 
-from . import resources, form, procedures, fileio
+from . import resources, form, procedures, fileio, canvasLayer
 
 ## Main class: LSTplugin
 
 
-class LandSurfaceTemperature(object):
+class LSTplugin(object):
 
     """Main plugin object"""
 
@@ -28,14 +29,14 @@ class LandSurfaceTemperature(object):
         """
 
         self.action = QAction(
-            icon=QIcon(":plugins/LandSurfaceTemperature/icon.png"),
-            text="Land Surface Temperature",
+            icon=QIcon(":plugins/LST_Plugin/icon.png"),
+            text="LST plugin",
             parent=self.iface.mainWindow(),
         )
         self.action.triggered.connect(self.run)
 
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("Land Surface Temperature", self.action)
+        self.iface.addPluginToMenu("LST Plugin", self.action)
 
     def unload(self):
 
@@ -44,7 +45,7 @@ class LandSurfaceTemperature(object):
         Removes option from interface
         """
 
-        self.iface.removePluginMenu("Land Surface Temperature", self.action)
+        self.iface.removePluginMenu("LST Plugin", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     def run(self):
@@ -64,11 +65,13 @@ def displayOnScreen(resultStates, resultNames, filer):
     Display generated outputs as layers on the interface
     """
 
+    layers = dict()
     for i in range(6):
         if resultStates[i][0]:
-            iface.addRasterLayer(
+            layers[resultNames[i]] = iface.addRasterLayer(
                 filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
             )
+    return layers
 
 
 def processAll(form, filePaths, resultStates, satType, displayResults=True):
@@ -116,7 +119,10 @@ def processAll(form, filePaths, resultStates, satType, displayResults=True):
     for res in resultStates:
         resultNames.append(res[1])
 
+    layers = None
     if displayResults:
-        displayOnScreen(resultStates, resultNames, filer)
+        layers = displayOnScreen(resultStates, resultNames, filer)
 
     form.showStatus("Finished")
+
+    return layers, filer.folder

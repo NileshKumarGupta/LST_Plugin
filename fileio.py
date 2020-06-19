@@ -2,10 +2,12 @@ import numpy as np
 import gdal, os, tarfile
 from zipfile import ZipFile
 import processing
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsCoordinateTransform, QgsProject
+from qgis.core import *
 
 gdal.UseExceptions()
 
+
+from qgis.utils import iface
 
 class fileHandler(object):
 
@@ -231,11 +233,13 @@ class fileHandler(object):
         processing.run("gdal:rasterize", parameters)
         vlayer = None
 
+
     def prepareOutFolder(self, opFolder=""):
 
         """
         Make a new directory under the operating folder, for outputs
         """
+
         if not opFolder:
             outfolder = self.folder + "/LandSurfaceTemperature"
 
@@ -247,6 +251,7 @@ class fileHandler(object):
             os.makedirs(outfolder)
         else:
             outfolder = opFolder
+
         self.outfolder = outfolder
 
     def generateFileName(self, topic, ftype):
@@ -271,3 +276,43 @@ class fileHandler(object):
         for resultName in arrays:
             filepath = self.generateFileName(resultName, "TIF")
             self.saveArray(arrays[resultName], filepath)
+
+
+class vectorHandler(fileHandler):
+    def __init__(self, folder):
+
+        fileHandler.__init__(self)
+        self.folder = folder
+
+    def saveFeatures(self, mpoly, fname, fclass):
+
+        uri = "MultiPolygon?crs=epsg:32643&field=id:integer&index=yes"
+        vlayer = QgsVectorLayer(uri, "fclass", "memory")
+        pr = vlayer.dataProvider()
+        feature = QgsFeature()
+        feature.setGeometry(mpoly)
+        feature.setAttributes([0])
+        pr.addFeatures([feature])
+        vlayer.updateExtents()
+        save_options = QgsVectorFileWriter.SaveVectorOptions()
+        save_options.driverName = "ESRI Shapefile"
+        save_options.fileEncoding = "UTF-8"
+        transform_context = QgsProject.instance().transformContext()
+        writerfunc = QgsVectorFileWriter.writeAsVectorFormatV2
+        error = writerfunc(vlayer, fname, transform_context, save_options)
+
+    def saveAll(self, features):
+
+        if not (self.outfolder):
+            self.prepareOutFolder("LSTPluginShapes")
+
+        for fclass in features:
+            mpoly = features[fclass]
+            fname = self.generateFileName(fclass, "shp")
+            self.saveFeatures(mpoly, fname, fclass)
+
+    def loadLayer(self, fclass):
+
+        fname = self.generateFileName(fclass, "shp")
+        layer = iface.addVectorLayer(fname, fclass, "ogr")
+        return layer

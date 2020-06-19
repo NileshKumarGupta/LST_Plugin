@@ -1,10 +1,13 @@
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
+from qgis.gui import QgsMapCanvas
+from qgis.core import QgsRasterLayer
 
 import time
+from . import mainLST, benchmarker, fileio, canvasLayer
+from qgis.core import *
 
-from . import mainLST
 
 
 class MainWindow(QMainWindow):
@@ -29,7 +32,7 @@ class MainWindow(QMainWindow):
         for layer in layers:
             self.layerInfor[layer.name()] = layer.dataProvider().dataSourceUri()
 
-        self.setWindowTitle("Land Surface Temperature")
+        self.setWindowTitle("LST Plugin")
 
         self.layout = QVBoxLayout()
 
@@ -238,11 +241,16 @@ class MainWindow(QMainWindow):
         )
 
         start_time = time.time()
-        mainLST.processAll(self, self.filePaths, resultStates, satType)
+        layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
         end_time = time.time()
         self.showStatus(
             "Finished, process time - " + str(int(end_time - start_time)) + " seconds"
         )
+
+        if resultStates[-1][0]:
+            lstLayer = layers[resultStates[-1][1]]
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
+            zoneSelect.show()
 
     def addCheckBox(self, text, defaultChecked=False):
 
