@@ -246,10 +246,10 @@ class fileHandler(object):
             while os.path.isdir(outfolder):
                 outfolder = self.folder + "/LandSurfaceTemperature" + str(i)
                 i += 1
-            os.makedirs(outfolder)
         else:
-            outfolder = opFolder
-
+            outfolder = self.folder + "/" + opFolder
+        
+        os.makedirs(outfolder)
         self.outfolder = outfolder
 
     def generateFileName(self, topic, ftype):

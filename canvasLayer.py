@@ -121,7 +121,6 @@ class CanvasLayer(QMainWindow):
 
         vproc = vectorprocessor.groupStats()
         stats = vproc.processAll(self, classdict, self.lstLayer, self.folder)
-        print(stats)
 
         # add table to tableLayout
         tableWidget = QTableWidget()
@@ -137,6 +136,8 @@ class CanvasLayer(QMainWindow):
         # add all entries
         for key in stats:
             tableWidget.setItem(rownum, 0, QTableWidgetItem(key))
+            if(not(stats[key][0])):
+                continue
             tableWidget.setItem(
                 rownum, 1, QTableWidgetItem(str(round(stats[key][0], 2)))
             )
@@ -182,7 +183,6 @@ class PolygonMapTool(QgsMapToolEmitPoint):
     def canvasDoubleClickEvent(self, e):
         point = self.toMapCoordinates(e.pos())
 
-        print(point)
         self.pointList.append(point)
         if len(self.pointList) == 1:
             self.vertex = QgsVertexMarker(self.canvas)
@@ -227,7 +227,6 @@ class PolygonMapTool(QgsMapToolEmitPoint):
 
         dropDown = QComboBox()
         if self.lastDropDown:
-            print(self.lastDropDown.currentText())
             if not self.preClasses.__contains__(self.lastDropDown.currentText()):
                 self.preClasses.append(self.lastDropDown.currentText())
 

@@ -7,7 +7,7 @@ from qgis.core import QgsRasterLayer
 from qgis.core import *
 
 import time
-from . import mainLST, benchmarker, fileio, canvasLayer
+from . import mainLST, fileio, canvasLayer
 from qgis.core import *
 
 from . import mainLST, procedures
@@ -292,14 +292,14 @@ class MainWindow(QMainWindow):
         if(self.virtualTask.progress() != 100):
             self.virtualTask.cancel()
         else:
-            mainLST.displayOnScreen(self.resultStates, self.postproc.filer)
+            layers = mainLST.displayOnScreen(self.resultStates, self.postproc.filer)
         time_taken = int(time.time() - self.start_time)
         self.showStatus("Finished, process time - " + str(time_taken) + " seconds")
         self.running = False
 
-        if resultStates[-1][0]:
-            lstLayer = layers[resultStates[-1][1]]
-            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
+        if self.resultStates[-1][0]:
+            lstLayer = layers[self.resultStates[-1][1]]
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, self.postproc.filer.outfolder)
             zoneSelect.show()
 
     def addCheckBox(self, text, defaultChecked=False):
