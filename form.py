@@ -1,10 +1,14 @@
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
+from qgis.gui import QgsMapCanvas
+from qgis.core import QgsRasterLayer
 
 from qgis.core import *
 
 import time
+from . import mainLST, benchmarker, fileio, canvasLayer
+from qgis.core import *
 
 from . import mainLST, procedures
 
@@ -292,6 +296,11 @@ class MainWindow(QMainWindow):
         time_taken = int(time.time() - self.start_time)
         self.showStatus("Finished, process time - " + str(time_taken) + " seconds")
         self.running = False
+
+        if resultStates[-1][0]:
+            lstLayer = layers[resultStates[-1][1]]
+            zoneSelect = canvasLayer.CanvasLayer(self, lstLayer, folder)
+            zoneSelect.show()
 
     def addCheckBox(self, text, defaultChecked=False):
 

@@ -2,11 +2,13 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtCore import *
 from qgis.utils import iface
+
 from qgis.core import *
 
 import time
+from qgis.gui import QgsMapCanvas
 
-from . import resources, form, procedures, fileio
+from . import resources, form, procedures, fileio, canvasLayer
 
 ## Main class: LSTplugin
 
@@ -32,7 +34,7 @@ class LSTplugin(object):
 
         self.action = QAction(
             icon=QIcon(":plugins/LST_Plugin/icon.png"),
-            text="LST Plugin",
+            text="LST plugin",
             parent=self.iface.mainWindow(),
         )
         self.action.triggered.connect(self.run)
@@ -71,11 +73,13 @@ def displayOnScreen(resultStates, filer):
     for res in resultStates:
         resultNames.append(res[1])
 
+    layers = dict()
     for i in range(6):
         if resultStates[i][0]:
-            iface.addRasterLayer(
+            layers[resultNames[i]] = iface.addRasterLayer(
                 filer.generateFileName(resultNames[i], "TIF"), resultNames[i]
             )
+    return layers
 
 class preprocess(QgsTask):
 
