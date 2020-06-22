@@ -242,16 +242,14 @@ class fileHandler(object):
 
         if not opFolder:
             outfolder = self.folder + "/LandSurfaceTemperature"
-
+            i = 1
             while os.path.isdir(outfolder):
-                if outfolder[-1].isnumeric():
-                    outfolder = outfolder[:-1] + str(1 + int(outfolder[-1]))
-                else:
-                    outfolder += "1"
-            os.makedirs(outfolder)
+                outfolder = self.folder + "/LandSurfaceTemperature" + str(i)
+                i += 1
         else:
-            outfolder = opFolder
-
+            outfolder = self.folder + "/" + opFolder
+        
+        os.makedirs(outfolder)
         self.outfolder = outfolder
 
     def generateFileName(self, topic, ftype):
