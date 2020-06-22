@@ -4,10 +4,13 @@ from qgis.PyQt.QtCore import *
 from qgis.gui import QgsMapCanvas
 from qgis.core import QgsRasterLayer
 
+from qgis.core import *
+
 import time
 from . import mainLST, benchmarker, fileio, canvasLayer
 from qgis.core import *
 
+from . import mainLST, procedures
 
 
 class MainWindow(QMainWindow):
@@ -26,6 +29,8 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.filePaths = dict()
+        self.running = False
+        self.error = None
         self.checkboxes = []
         self.layerInfor = dict()
         layers = iface.mapCanvas().layers()
@@ -68,6 +73,7 @@ class MainWindow(QMainWindow):
         zipLayout = QHBoxLayout()
         pathField = QLineEdit()
         pathField.setText("Compressed File")
+        pathField.textChanged.connect(lambda : self.textInput(pathField, "zip"))
         zipLayout.addWidget(pathField)
         selband = QPushButton()
         selband.setText("Select Compressed File")
@@ -120,6 +126,7 @@ class MainWindow(QMainWindow):
         sfoldlayout = QHBoxLayout()
         pathFold = QLineEdit()
         pathFold.setText("Output Folder Destination")
+        pathFold.textChanged.connect(lambda : self.textInput(pathFold, "output"))
         sfoldlayout.addWidget(pathFold)
         selfold = QPushButton()
         selfold.setText("Select Output Destination")
@@ -161,9 +168,11 @@ class MainWindow(QMainWindow):
 
         pathField = QLineEdit()
         pathField.setText(band)
+        pathField.textChanged.connect(lambda : self.textInput(pathField, band))
         hlayout.addWidget(pathField)
 
         selLayer = QComboBox()
+        selLayer.setFixedWidth(200)
         selLayer.addItem("Select a Layer")
         self.layerInfor["Select a Layer"] = "Select a layer"
 
@@ -191,6 +200,9 @@ class MainWindow(QMainWindow):
         """
 
         if addr == "Select a layer":
+            pathField.setText(band)
+            if(band in self.filePaths):
+                del self.filePaths[band]
             return
         if not (addr.lower().endswith(".tif")) and not (addr.lower().endswith(".shp")):
             lastmatch = addr.lower().rfind(".tif")
@@ -222,6 +234,18 @@ class MainWindow(QMainWindow):
             return
         pathField.setText(fp)
         self.filePaths[name] = fp
+    
+    def textInput(self, sender, key):
+
+        text = sender.text()
+        if(key in self.filePaths):
+            del self.filePaths[key]
+        if(text == key):
+            return
+        if(text == ""):
+            sender.setText(key)
+            return
+        self.filePaths[key] = text
 
     def goFunc(self):
 
@@ -230,9 +254,14 @@ class MainWindow(QMainWindow):
         Begins the processing
         """
 
-        resultStates = []
+        if(self.running):
+            self.showError("Busy, please wait till end of execution")
+            return
+        self.running = True
+
+        self.resultStates = []
         for box in self.checkboxes:
-            resultStates.append((box[0].isChecked(), box[1].text() or box[0].text()))
+            self.resultStates.append((box[0].isChecked(), box[1].text() or box[0].text()))
 
         satType = (
             self.radios[0].text()
@@ -240,12 +269,33 @@ class MainWindow(QMainWindow):
             else self.radios[1].text()
         )
 
-        start_time = time.time()
-        layers, folder = mainLST.processAll(self, self.filePaths, resultStates, satType)
-        end_time = time.time()
-        self.showStatus(
-            "Finished, process time - " + str(int(end_time - start_time)) + " seconds"
-        )
+        self.start_time = time.time()
+
+        self.virtualTask = mainLST.CarrierTask(self)
+        self.virtualTask.progressChanged.connect(self.update_progress)
+        self.preproc = mainLST.preprocess(self.filePaths, self.resultStates, satType, self.virtualTask)
+        self.proc = procedures.processor(self.preproc, self.resultStates, self.virtualTask)
+        self.postproc = mainLST.postprocess(self.proc, self.virtualTask)
+        self.virtualTask.addSubTask(self.preproc)
+        self.virtualTask.addSubTask(self.proc, [self.preproc])
+        self.virtualTask.addSubTask(self.postproc, [self.proc])
+        QgsApplication.taskManager().addTask(self.virtualTask)
+
+        return
+    
+    def update_progress(self):
+        
+        self.showStatus(self.virtualTask.notification)
+    
+    def endRun(self):
+
+        if(self.virtualTask.progress() != 100):
+            self.virtualTask.cancel()
+        else:
+            mainLST.displayOnScreen(self.resultStates, self.postproc.filer)
+        time_taken = int(time.time() - self.start_time)
+        self.showStatus("Finished, process time - " + str(time_taken) + " seconds")
+        self.running = False
 
         if resultStates[-1][0]:
             lstLayer = layers[resultStates[-1][1]]
@@ -283,6 +333,7 @@ class MainWindow(QMainWindow):
         Show a message on the status bar
         """
 
+        text = str(text)
         self.status.showMessage(text, 60000)
 
     def showError(self, err):
@@ -294,3 +345,8 @@ class MainWindow(QMainWindow):
         self.showStatus(err)
         messageBox = QMessageBox()
         messageBox.critical(None, "", err)
+
+    def closeEvent(self, event):
+
+        if(self.running):
+            self.endRun()
