@@ -247,7 +247,10 @@ class fileHandler(object):
                 outfolder = self.folder + "/LandSurfaceTemperature" + str(i)
                 i += 1
         else:
-            outfolder = self.folder + "/" + opFolder
+            outfolder = opFolder
+            if(os.path.isdir(outfolder)):
+                self.outfolder = outfolder
+                return
         
         os.makedirs(outfolder)
         self.outfolder = outfolder

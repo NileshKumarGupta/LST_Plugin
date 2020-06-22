@@ -288,14 +288,17 @@ class MainWindow(QMainWindow):
         self.showStatus(self.virtualTask.notification)
     
     def endRun(self):
+        layers = None
 
-        if(self.virtualTask.progress() != 100):
+        if(self.virtualTask.progress() != 100 or self.virtualTask.error):
             self.virtualTask.cancel()
         else:
             layers = mainLST.displayOnScreen(self.resultStates, self.postproc.filer)
         time_taken = int(time.time() - self.start_time)
         self.showStatus("Finished, process time - " + str(time_taken) + " seconds")
         self.running = False
+        if(not(layers)):
+            return
 
         if self.resultStates[-1][0]:
             lstLayer = layers[self.resultStates[-1][1]]
