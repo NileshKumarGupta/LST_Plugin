@@ -31,7 +31,6 @@ class CanvasLayer(QMainWindow):
 
         self.widget = QWidget()
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.canvas)
 
         # layout for showing the processed data
         self.tableLayout = QVBoxLayout()
@@ -39,12 +38,10 @@ class CanvasLayer(QMainWindow):
         # scroll area for filling classes
         self.scrollArea = QScrollArea()
         self.scrollArea.setFixedHeight(200)
-        self.layout.addWidget(self.scrollArea)
 
         # go button
         self.goButton = QPushButton("GO")
         self.goButton.clicked.connect(lambda: self.goFunc(self.canvas.polygonList))
-        self.layout.addWidget(self.goButton)
 
         self.actionZoomIn = QAction("Zoom in", self)
         self.actionZoomOut = QAction("Zoom out", self)
@@ -93,6 +90,10 @@ class CanvasLayer(QMainWindow):
         )
 
         # self.canvas.setMapTool(self.toolPan)
+        
+        self.layout.addWidget(self.canvas)
+        self.layout.addWidget(self.scrollArea)
+        self.layout.addWidget(self.goButton)
 
         self.widget.setLayout(self.layout)
         self.setCentralWidget(self.widget)
@@ -188,6 +189,10 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.lastDropDown = None
 
     def canvasDoubleClickEvent(self, e):
+
+        if(not(self)):
+            return
+
         point = self.toMapCoordinates(e.pos())
 
         self.pointList.append(point)
@@ -259,6 +264,8 @@ class PolygonMapTool(QgsMapToolEmitPoint):
 
         # self.parentLayout.addWidget(cWidget)
 
+        if(not self.templayout):
+            self.templayout = QVBoxLayout()
         self.templayout.addWidget(cWidget)
         templistwidget = QWidget()
         templistwidget.setLayout(self.templayout)
