@@ -6,10 +6,13 @@ from qgis.core import QgsRasterLayer
 
 from . import vectorprocessor, fileio
 
+import time
+
 
 class CanvasLayer(QMainWindow):
     def __init__(self, form, lstLayer, folder):
-        super(QMainWindow, self).__init__()
+        # super(QMainWindow, self).__init__()
+        QMainWindow.__init__(self)
         self.lstLayer = lstLayer
         self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
@@ -17,6 +20,12 @@ class CanvasLayer(QMainWindow):
         self.canvas.polygonList = list()
         self.form = form
         self.folder = folder
+
+        # Basic canvas settings
+        self.canvas.setCanvasColor(Qt.white)
+        self.canvas.setLayers([self.lstLayer])
+        self.canvas.setExtent(self.lstLayer.extent())
+        self.canvas.enableAntiAliasing(True)
 
         # layout of the widget
 
@@ -36,12 +45,6 @@ class CanvasLayer(QMainWindow):
         self.goButton = QPushButton("GO")
         self.goButton.clicked.connect(lambda: self.goFunc(self.canvas.polygonList))
         self.layout.addWidget(self.goButton)
-
-        # Basic canvas settings
-        self.canvas.setCanvasColor(Qt.white)
-        self.canvas.setLayers([self.lstLayer])
-        self.canvas.setExtent(self.lstLayer.extent())
-        self.canvas.enableAntiAliasing(True)
 
         self.actionZoomIn = QAction("Zoom in", self)
         self.actionZoomOut = QAction("Zoom out", self)
@@ -96,6 +99,7 @@ class CanvasLayer(QMainWindow):
 
         self.status = QStatusBar()
         self.setStatusBar(self.status)
+        self.showStatus("Starting")
 
     def showStatus(self, text):
 
@@ -103,10 +107,11 @@ class CanvasLayer(QMainWindow):
         Show a message on the status bar
         """
 
-        print("Showing stuff", text)
-        self.status.showMessage(text, 20000)
+        text = str(text)
+        self.status.showMessage(text, 60000)
 
     def goFunc(self, polygonList):
+        
         classdict = dict()
         for entry in polygonList:
             if entry[3].currentText() == "":

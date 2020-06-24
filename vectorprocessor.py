@@ -2,12 +2,14 @@ from qgis.core import *
 from qgis.analysis import *
 
 from . import fileio
+import time
 
 class groupStats(object):
 
     def __init__(self):
 
         self.features = dict()
+        self.form = None
 
     def multipolygonize(self, points):
 
@@ -36,20 +38,28 @@ class groupStats(object):
         mpoly = list(vlayer.getFeatures())[0]
         mean, stdev = list(mpoly.attributes())[1:]
         return mean, stdev
+    
+    def update(self, text):
+
+        text = str(text)
+        if(not(self.form)):
+            return
+        self.form.showStatus(text)
 
     def processAll(self, form, points, rlayer, folder):
 
-        form.showStatus("Preparing multipolygons")
+        self.form = form
+        self.update("Preparing multipolygons")
         self.multipolygonize(points)
-        form.showStatus("Saving shape files")
+        self.update("Saving shape files")
         self.saveAll(folder)
-        form.showStatus("Loading vector layers")
+        self.update("Loading vector layers")
         self.getLayers(points)
 
         stats = dict()
         for fclass in self.features:
-            form.showStatus("Calculating Statistics for " + fclass)
+            self.update("Calculating Statistics for " + fclass)
             stats[fclass] = self.calcStats(rlayer, fclass)
 
-        form.showStatus("Finished")
+        self.update("Finished")
         return stats

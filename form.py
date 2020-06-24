@@ -226,7 +226,7 @@ class MainWindow(QMainWindow):
 
     def getFolder(self, pathField, name):
         """
-        Get path of foleder selected
+        Get path of folder selected
         """
 
         fp = QFileDialog.getExistingDirectory()
