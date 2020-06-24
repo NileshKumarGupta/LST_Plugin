@@ -17,7 +17,7 @@ class CanvasLayer(QMainWindow):
         self.canvas = QgsMapCanvas()
         self.toolbar = self.addToolBar("Canvas actions")
         self.setFixedHeight(700)
-        self.canvas.polygonList = list()
+        self.polygonList = list()
         self.form = form
         self.folder = folder
 
@@ -41,7 +41,7 @@ class CanvasLayer(QMainWindow):
 
         # go button
         self.goButton = QPushButton("GO")
-        self.goButton.clicked.connect(lambda: self.goFunc(self.canvas.polygonList))
+        self.goButton.clicked.connect(lambda: self.goFunc(self.polygonList))
 
         self.actionZoomIn = QAction("Zoom in", self)
         self.actionZoomOut = QAction("Zoom out", self)
@@ -74,7 +74,7 @@ class CanvasLayer(QMainWindow):
         # basic settings end
         # add Polygon Select
 
-        self.toolPolygon = PolygonMapTool(self.canvas, self.scrollArea)
+        self.toolPolygon = PolygonMapTool(self, self.canvas, self.scrollArea)
         self.actionPolygonSelect = QAction("Polygon Select", self)
         self.actionPolygonSelect.triggered.connect(
             lambda: self.canvas.setMapTool(self.toolPolygon)
@@ -86,11 +86,11 @@ class CanvasLayer(QMainWindow):
         self.actionUndo = QAction("Undo", self)
         self.toolbar.addAction(self.actionUndo)
         self.actionUndo.triggered.connect(
-            lambda: self.removeLast(self.canvas.polygonList)
+            lambda: self.removeLast(self.polygonList)
         )
 
         # self.canvas.setMapTool(self.toolPan)
-        
+
         self.layout.addWidget(self.canvas)
         self.layout.addWidget(self.scrollArea)
         self.layout.addWidget(self.goButton)
@@ -172,11 +172,12 @@ class CanvasLayer(QMainWindow):
 
 
 class PolygonMapTool(QgsMapToolEmitPoint):
-    def __init__(self, canvas, scrollArea):
+    def __init__(self, form, canvas, scrollArea):
         QgsMapToolEmitPoint.__init__(self, canvas)
         # super(QgsMapToolEmitPoint, self).__init__(canvas)
         self.canvas = canvas
         self.scrollArea = scrollArea
+        self.form = form
 
         self.rubberBand = QgsRubberBand(self.canvas, True)
         self.rubberBand.setColor(Qt.red)
@@ -218,7 +219,7 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.rubberBand.show()
 
         cWidget, editClass = self.fillClass()
-        self.canvas.polygonList.append(
+        self.form.polygonList.append(
             (self.pointList, self.rubberBand, cWidget, editClass, self.vertex)
         )
         self.pointList = list()
@@ -265,7 +266,8 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         # self.parentLayout.addWidget(cWidget)
 
         if(not self.templayout):
-            self.templayout = QVBoxLayout()
+            self.newlayout = QVBoxLayout()
+            self.templayout = self.newlayout
         self.templayout.addWidget(cWidget)
         templistwidget = QWidget()
         templistwidget.setLayout(self.templayout)
