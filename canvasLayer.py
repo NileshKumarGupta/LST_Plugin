@@ -103,6 +103,7 @@ class CanvasLayer(QMainWindow):
         Show a message on the status bar
         """
 
+        print("Showing stuff", text)
         self.status.showMessage(text, 20000)
 
     def goFunc(self, polygonList):
@@ -166,7 +167,8 @@ class CanvasLayer(QMainWindow):
 
 class PolygonMapTool(QgsMapToolEmitPoint):
     def __init__(self, canvas, scrollArea):
-        super(QgsMapToolEmitPoint, self).__init__(canvas)
+        QgsMapToolEmitPoint.__init__(self, canvas)
+        # super(QgsMapToolEmitPoint, self).__init__(canvas)
         self.canvas = canvas
         self.scrollArea = scrollArea
 

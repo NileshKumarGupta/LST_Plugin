@@ -284,8 +284,9 @@ class MainWindow(QMainWindow):
         return
     
     def update_progress(self):
-        
-        self.showStatus(self.virtualTask.notification)
+
+        time_elapsed = self.virtualTask.time        
+        self.showStatus(str(time_elapsed) + " seconds " + self.virtualTask.notification)
     
     def endRun(self):
         layers = None

@@ -164,6 +164,7 @@ class CarrierTask(QgsTask):
 
     def __init__(self, form):
         QgsTask.__init__(self, "LST plugin base task")
+        self.time = 0
         self.form = form
         self.error = None
         self.done = False
@@ -172,6 +173,8 @@ class CarrierTask(QgsTask):
     def run(self):
         while(not(self.done) and not(self.error)):
             time.sleep(1)
+            self.time = int(time.time() - self.form.start_time)
+            self.setProgress(self.progress())
         return True
     
     def finished(self, result = None):
