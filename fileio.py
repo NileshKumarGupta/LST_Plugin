@@ -50,7 +50,7 @@ class fileHandler(object):
         del im
         return array
 
-    def loadZip(self, filePaths):
+    def loadZip(self, filePaths, interface):
 
         """
         Compatible with zip, tar and gz extensions
@@ -69,6 +69,8 @@ class fileHandler(object):
             return bands
         self.folder = filepath[: filepath.rfind("/")]
 
+        interface.parent.updateProgress(5, "5 % Reading compressed directory")
+
         if filepath.lower().endswith(".zip"):
             compressed = ZipFile(filepath, "r")
             extract = compressed.extract
@@ -81,6 +83,8 @@ class fileHandler(object):
             compressed = tarfile.open(filepath, "r")
             extract = compressed.extract
             listoffiles = compressed.getmembers()
+        
+        interface.parent.updateProgress(5, "5 % Reading satellite type")
 
         for filename in listoffiles:
             if filename.upper().endswith("MTL.TXT"):
@@ -111,6 +115,7 @@ class fileHandler(object):
             bands[band] = np.array([])
             for filename in listoffiles:
                 if filename.upper().endswith(sat_bands[sat_type][band] + ".TIF"):
+                    interface.parent.updateProgress(5, "5 % Loading file for " + band)
                     extract(filename)
                     filePaths[band] = filename
         compressed.close()
@@ -118,6 +123,7 @@ class fileHandler(object):
             bands[band] = self.readBand(filePaths[band])
 
         if shapefile:
+            interface.parent.updateProgress(5, "5 % Loading shapefile")
             bands["Shape"] = self.readShapeFile(shapefile)
             if type(bands["Shape"]) == str:
                 bands["Error"] = bands["Shape"]

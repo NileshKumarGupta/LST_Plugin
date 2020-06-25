@@ -112,7 +112,7 @@ class preprocess(QgsTask):
         self.parent.updateProgress(5, "5 % Loading files")
 
         if "zip" in self.filePaths:
-            self.bands = self.filer.loadZip(self.filePaths)
+            self.bands = self.filer.loadZip(self.filePaths, self)
             self.satType = self.bands["sat_type"]
             del self.bands["sat_type"]
         else:
